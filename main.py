@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 from ABM import generate_ABM_data
@@ -15,18 +16,19 @@ from testing import run_emulator
 settings = {
     "num_workers": 0,
     "random_seed": 42,
-    "infection_rate_range": (0.10, 0.20),
+    "infection_rate_range": (0.1, 0.2),
     "recovery_rate_range": (0.05, 0.15),
     "population_size": 5000,
     "num_time_steps": 256,
-    "num_realisations": 1000,
+    "num_realisations": 100,
+    "num_iterations": 10,
     "nn_epochs": 256,
     "nn_batch_size": 32,
     "input_size": 3,
     "hidden_size": 64,
     "output_size": 256,
     "learning_rate": 0.001,
-    "model_type": "GRU",  # FFNN or "GRU"
+    "model_type": "FFNN",  # FFNN or "GRU"
     "test_pct": 0.1,
     "val_pct": 0.1,
     "mode": "comparison",  # emulation or "comparison"
@@ -54,6 +56,24 @@ if __name__ == "__main__":
     X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["test_pct"], random_state=settings["random_seed"])
     X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=settings["val_pct"]/(1-settings["test_pct"]), random_state=settings["random_seed"])
 
+    scaler = StandardScaler()
+    
+    # Normalize your input data
+    X_train_scaled = scaler.fit_transform(X_train.numpy())
+    X_val_scaled = scaler.transform(X_val.numpy())
+    X_test_scaled = scaler.transform(X_test.numpy())
+
+    # Convert normalized data back to tensors
+    X_train = torch.tensor(X_train_scaled, dtype=torch.float32)
+    X_val = torch.tensor(X_val_scaled, dtype=torch.float32)
+    X_test = torch.tensor(X_test_scaled, dtype=torch.float32)
+
+    # Convert to tensor datasets
+    train_data = TensorDataset(X_train, Y_train)
+    val_data = TensorDataset(X_val, Y_val)
+    test_data = TensorDataset(X_test, Y_test)
+
+    
     # Convert to tensor datasets
     train_data = TensorDataset(X_train, Y_train)
     val_data = TensorDataset(X_val, Y_val)
