@@ -20,8 +20,11 @@ class GRU(nn.Module):
         self.hidden_size = hidden_size
         self.gru = nn.GRU(input_size, hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
+        self.ln = nn.LayerNorm(hidden_size)
 
     def forward(self, x):
         x, _ = self.gru(x.view(len(x), 1, -1))
+        x = self.ln(x)
         x = self.fc(x.view(len(x), -1))
         return x
+
