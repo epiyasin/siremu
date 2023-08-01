@@ -6,12 +6,12 @@ class FFNN(nn.Module):
         super(FFNN, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
-        self.relu = nn.ReLU()  # Define ReLU operation
+        # self.relu = nn.ReLU()  # Define ReLU operation
         
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
+        x = self.fc1(x)#torch.relu(self.fc1(x))
         x = self.fc2(x)
-        x = self.relu(x)
+        # x = self.relu(x)
         return x
 
 class GRU(nn.Module):

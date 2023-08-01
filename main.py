@@ -33,59 +33,102 @@ settings = {
     "scenario": [0.15, 0.10, 1000]  # a specific scenario with the infection rate, recovery rate, and population size
 }
 
-# Set random seed for reproducibility
-np.random.seed(settings["random_seed"])
-torch.manual_seed(settings["random_seed"])
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
 
-# Generate Agent-Based Model (ABM) data
-all_realisations = generate_ABM_data(settings)
+    # Data generation
+    np.random.seed(settings["random_seed"])
+    ABM_data = generate_ABM_data(settings)
 
-# Prepare data for Neural Network (NN)
-X = []
-y = []
-for realisation in all_realisations:
-    X.append(np.array([settings["scenario"], realisation["SIR_data"].values[:, 0]]))
-    y.append(np.array(realisation["incidences"]))
+    X = []
+    Y = []
 
-# Split into train, validation, and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=settings["test_pct"], random_state=settings["random_seed"])
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=settings["val_pct"], random_state=settings["random_seed"])
+    for realisation in ABM_data:
+        X.append([np.random.uniform(*settings["infection_rate_range"]), np.random.uniform(*settings["recovery_rate_range"]), settings["population_size"]])
+        Y.append(realisation['incidences'])
 
-# Convert to PyTorch DataLoaders
-train_data = TensorDataset(torch.from_numpy(np.array(X_train)), torch.from_numpy(np.array(y_train)))
-train_loader = DataLoader(train_data, shuffle=True, batch_size=settings["nn_batch_size"], num_workers=settings["num_workers"])
+    X = torch.tensor(X, dtype=torch.float32)
+    Y = torch.stack([torch.tensor(i, dtype=torch.float32) for i in Y]) 
 
-val_data = TensorDataset(torch.from_numpy(np.array(X_val)), torch.from_numpy(np.array(y_val)))
-val_loader = DataLoader(val_data, shuffle=True, batch_size=settings["nn_batch_size"], num_workers=settings["num_workers"])
+    # Split data into train, validation and test
+    X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["test_pct"], random_state=settings["random_seed"])
+    X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=settings["val_pct"]/(1-settings["test_pct"]), random_state=settings["random_seed"])
 
-test_data = TensorDataset(torch.from_numpy(np.array(X_test)), torch.from_numpy(np.array(y_test)))
-test_loader = DataLoader(test_data, shuffle=True, batch_size=settings["nn_batch_size"], num_workers=settings["num_workers"])
+    # Convert to tensor datasets
+    train_data = TensorDataset(X_train, Y_train)
+    val_data = TensorDataset(X_val, Y_val)
+    test_data = TensorDataset(X_test, Y_test)
 
-# Define model, criterion and optimizer
-if settings["model_type"] == "FFNN":
-    model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
-elif settings["model_type"] == "GRU":
-    model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
-else:
-    raise ValueError(f"Invalid model_type: {settings['model_type']}. Choose from 'FFNN' or 'GRU'.")
+    # Create data loaders
+    train_loader = DataLoader(train_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
+    val_loader = DataLoader(val_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
+    test_loader = DataLoader(test_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
 
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=settings["learning_rate"])
+    # Model selection
+    if settings["model_type"] == 'FFNN':
+        model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
+    elif settings["model_type"] == 'GRU':
+        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
 
-# Train the model
-train_model(model, criterion, optimizer, train_loader, val_loader, settings["nn_epochs"])
+    # Define loss and optimizer
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=settings["learning_rate"])
 
-# Run the emulator
-predictions, actual = run_emulator(model, test_loader)
+    # Train the model
+    train_model(model, criterion, optimizer, train_loader, val_loader, settings["nn_epochs"])
 
-# Comparison mode: Run a single realisation of the ABM and compare it to the emulator's output
-if settings["mode"] == "comparison":
-    realisation = generate_ABM_data(settings)[0]
-    X = torch.from_numpy(np.array([settings["scenario"], realisation["SIR_data"].values[:, 0]]))
-    y_actual = np.array(realisation["incidences"])
-    y_predicted = model(X).detach().numpy()
-    plt.figure(figsize=(10, 5))
-    plt.plot(y_actual, label='ABM')
-    plt.plot(y_predicted, label='Emulator')
-    plt.legend()
-    plt.show()
+    # Save the model after training
+    torch.save(model.state_dict(), 'model.pth')
+
+    # Load the model when you want to run the emulator
+    if settings["model_type"] == 'FFNN':
+        model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
+    elif settings["model_type"] == 'GRU':
+        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
+
+    model.load_state_dict(torch.load('model.pth'))
+
+    if settings["mode"] == "comparison":
+        # Run the emulator
+        predictions, actual = run_emulator(model, test_loader)
+
+        # Convert predictions and actual to numpy for easier handling
+        predictions_np = np.concatenate(predictions, axis=0)
+        actual_np = np.concatenate(actual, axis=0)
+
+        # Select 25 random epidemics for plotting
+        num_plots = 25
+        indices = np.random.choice(range(predictions_np.shape[0]), size=num_plots, replace=False)
+
+        # Create a 5x5 grid of subplots
+        fig, axes = plt.subplots(5, 5, figsize=(20, 20))
+
+        for i, ax in enumerate(axes.flat):
+            idx = indices[i]
+            ax.plot(predictions_np[idx], label='Predicted')
+            ax.plot(actual_np[idx], label='Actual')
+            ax.set_title(f'Epidemic {idx+1}')
+            ax.set_xlabel('Time Step')
+            ax.set_ylabel('New Infections')
+            ax.legend()
+
+        # Adjust the layout so the plots do not overlap
+        plt.tight_layout()
+        plt.show()
+
+    elif settings["mode"] == "emulation":
+        # Define the specific scenario to emulate
+        scenario = torch.tensor([settings["scenario"]], dtype=torch.float32)
+
+        # Use the model to emulate the scenario
+        with torch.no_grad():
+            predicted_incidence = model(scenario)
+
+        # Plot the predicted incidence
+        plt.figure(figsize=(10, 5))
+        plt.plot(predicted_incidence[0].numpy(), label='Predicted Incidence')
+        plt.title('Emulated Epidemic')
+        plt.xlabel('Time Step')
+        plt.ylabel('New Infections')
+        plt.legend()
+        plt.show()
