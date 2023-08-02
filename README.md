@@ -1,4 +1,4 @@
-# Siremu: A Python Package for Epidemic Simulation and Emulation
+# siremu: A Python Package for Epidemic Simulation and Emulation
 
 Siremu is a Python package designed to simulate and emulate epidemic dynamics using agent-based modeling (ABM) and neural networks (Feed-Forward Neural Network and Gated Recurrent Unit). The package generates the ABM data for given infection rates, recovery rates and population size. It can also train neural network models on this data and use the models to predict the dynamics of the epidemic.
 
