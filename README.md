@@ -12,7 +12,6 @@ cd siremu
 pip install -r requirements.txt
 ```
 
-
 ### Dependencies
 
 The package uses numpy, pandas, torch, tqdm, matplotlib, and sklearn. You can install these dependencies with pip:
