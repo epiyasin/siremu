@@ -16,9 +16,9 @@ from testing import run_emulator
 settings = {
     "num_workers": 0,
     "random_seed": 42,
-    "infection_rate_range": (0.1, 0.2),
-    "recovery_rate_range": (0.05, 0.15),
-    "population_size": 5000,
+    "infection_rate_range": (0.05, 0.25),
+    "recovery_rate_range": (0.05, 0.25),
+    "population_size": 50000,
     "num_time_steps": 256,
     "num_realisations": 100,
     "num_iterations": 10,
