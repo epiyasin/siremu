@@ -1,2 +1,1 @@
-# siremu
- 
+# siremu (SIR Emulator)
