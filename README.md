@@ -4,7 +4,7 @@ Siremu is a Python package designed to simulate and emulate epidemic dynamics us
 
 ## Installation
 
-## Package
+## Install siremu
 
 ```
 git clone https://github.com/your_username/siremu.git
@@ -12,9 +12,9 @@ cd siremu
 pip install -r requirements.txt
 ```
 
-### Dependencies
+### Install Dependencies
 
-The package uses numpy, pandas, torch, tqdm, matplotlib, and sklearn. You can install these dependencies with pip:
+The package uses numpy, pandas, tqdm, torch, matplotlib, and scikit-learn. You can install these dependencies with pip:
 
 ```
 pip install numpy pandas torch tqdm matplotlib sklearn
