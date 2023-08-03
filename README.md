@@ -17,7 +17,7 @@ pip install -r requirements.txt
 The package uses numpy, pandas, tqdm, torch, matplotlib, and scikit-learn. You can install these dependencies with pip:
 
 ```
-pip install numpy pandas torch tqdm matplotlib sklearn
+pip install numpy pandas torch tqdm matplotlib scikit-learn
 ```
 
 After the dependencies are installed, you can download this package and use it in your Python code.
