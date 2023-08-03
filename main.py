@@ -18,7 +18,7 @@ settings = {
     "random_seed": 42,
     "infection_rate_range": (0.05, 0.25),
     "recovery_rate_range": (0.05, 0.25),
-    "population_size": 50000,
+    "population_size": 10000,
     "num_time_steps": 256,
     "num_realisations": 100,
     "num_iterations": 10,
@@ -28,7 +28,7 @@ settings = {
     "hidden_size": 64,
     "output_size": 256,
     "learning_rate": 0.001,
-    "model_type": "FFNN",  # FFNN or "GRU"
+    "model_type": "LSTM",  # FFNN or "GRU"
     "test_pct": 0.1,
     "val_pct": 0.1,
     "mode": "comparison",  # emulation or "comparison"
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     # Train the model
     train_model(model, criterion, optimizer, train_loader, val_loader, settings["nn_epochs"])
-
+    
     # Save the model after training
     torch.save(model.state_dict(), 'model.pth')
 
