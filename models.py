@@ -32,3 +32,17 @@ class GRU(nn.Module):
         x = self.fc(x.view(len(x), -1))
         return x
 
+class LSTM(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(LSTM, self).__init__()
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(input_size, hidden_size)
+        self.fc = nn.Linear(hidden_size, output_size)
+        self.ln = nn.LayerNorm(hidden_size)
+        
+    def forward(self, x):
+        x, _ = self.lstm(x.view(len(x), 1, -1))
+        x = self.ln(x)
+        x = self.fc(x.view(len(x), -1))
+        return x
+        
