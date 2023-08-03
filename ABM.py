@@ -14,6 +14,7 @@ def update_agents(agents, infection_rate, recovery_rate, N):
         if np.random.uniform() < recovery_rate: 
             agents[i] = 'R'
             new_recoveries += 1
+    new_infections = (new_infections / N) * 1000
     return agents, new_infections, new_recoveries
 
 def generate_ABM_data(settings):
