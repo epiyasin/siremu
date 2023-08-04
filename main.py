@@ -73,12 +73,6 @@ if __name__ == "__main__":
     val_data = TensorDataset(X_val, Y_val)
     test_data = TensorDataset(X_test, Y_test)
 
-    
-    # Convert to tensor datasets
-    train_data = TensorDataset(X_train, Y_train)
-    val_data = TensorDataset(X_val, Y_val)
-    test_data = TensorDataset(X_test, Y_test)
-
     # Create data loaders
     train_loader = DataLoader(train_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
     val_loader = DataLoader(val_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
@@ -88,6 +82,8 @@ if __name__ == "__main__":
     if settings["model_type"] == 'FFNN':
         model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
     elif settings["model_type"] == 'GRU':
+        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
+    elif settings["model_type"] == 'LSTM':
         model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
 
     # Define loss and optimizer
@@ -104,6 +100,8 @@ if __name__ == "__main__":
     if settings["model_type"] == 'FFNN':
         model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
     elif settings["model_type"] == 'GRU':
+        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
+    elif settings["model_type"] == 'LSTM':
         model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
 
     model.load_state_dict(torch.load('model.pth'))
