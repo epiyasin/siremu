@@ -29,7 +29,7 @@ def generate_iteration(infection_rate, recovery_rate, settings):
         SIR_data['I'].append(np.sum(agents == 'I'))
         SIR_data['R'].append(np.sum(agents == 'R'))
         incidences.append(new_infections)
-    return {'SIR_data': pd.DataFrame(SIR_data), 'incidences': incidences}
+    return {'SIR_data': pd.DataFrame(SIR_data), 'incidences': incidences, 'infection_rate': infection_rate, 'recovery_rate': recovery_rate}
 
 def generate_ABM_data(settings):
     all_realisations = []
