@@ -15,25 +15,25 @@ from testing import run_emulator
 # User settings
 settings = {
     "data": {
-        "generate_ABM": True, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
+        "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
         "data_dir": "D:/Malaria/siremu/data", # Directory containing the preprocessed ABM dataset
         "num_workers": 0, # Number of workers to use for loading data in DataLoader
         "shuffle": True, # If True, shuffles the data in DataLoader
-        "test_pct": 0.1, # Fraction of data used for testing
-        "val_pct": 0.1  # Fraction of data used for validation
+        "test_pct": 0.2, # Fraction of data used for testing
+        "val_pct": 0.2  # Fraction of data used for validation
     },
     "execution": {
-        "max_workers": 12, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
+        "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
         "random_seed": 42, # Seed for random number generator to ensure reproducibility
         "mode": "comparison"  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
     },
     "ABM": {
-        "infection_rate_range": (0.25, 2.5), # Range of daily infection rates to sample from
-        "recovery_rate_range": (0.05, 0.5), # Range of daily recovery rates to sample from
+        "infection_rate_range": (0.2, 1.0), # Range of daily infection rates to sample from
+        "recovery_rate_range": (0.05, 0.2), # Range of daily recovery rates to sample from
         "population_size": 10000, # Total population size
         "num_time_steps": 256, # Number of time-series steps in ABM
-        "num_realisations": 50, # Number of different realisations (i.e., simulations) for a given set of rates
-        "num_iterations": 10, # Number of iterations to re-run the ABM with a fixed set of rates
+        "num_realisations": 128, # Number of different realisations (i.e., simulations) for a given set of rates
+        "num_iterations": 16, # Number of iterations to re-run the ABM with a fixed set of rates
         "scenario": [1.15, 0.10, 5000]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
     },
     "neural_net": {
@@ -59,21 +59,38 @@ if __name__ == "__main__":
         np.random.seed(settings["execution"]["random_seed"])
         ABM_data = generate_ABM_data(settings)
 
+        # Extract X, Y, and the rates from the ABM data
         X = []
         Y = []
+        infection_rates = []
+        recovery_rates = []
 
         for realisation in ABM_data:
-            X.append([np.random.uniform(*settings["ABM"]["infection_rate_range"]), np.random.uniform(*settings["ABM"]["recovery_rate_range"]), settings["ABM"]["population_size"]])
+            X.append([
+                np.random.uniform(*settings["ABM"]["infection_rate_range"]),
+                np.random.uniform(*settings["ABM"]["recovery_rate_range"]),
+                settings["ABM"]["population_size"]
+            ])
             Y.append(realisation['incidences'])
+            infection_rates.append(realisation['infection_rate'])
+            recovery_rates.append(realisation['recovery_rate'])
 
         X = torch.tensor(X, dtype=torch.float32)
         Y = torch.stack([torch.tensor(i, dtype=torch.float32) for i in Y]) 
 
-        # Save the generated data
-        np.savez(settings["data"]["data_dir"] + '/ABM_data.npz', X=X.numpy(), Y=Y.numpy())
+        data_to_save = {
+            'X': X,
+            'Y': Y,
+            'ABM_data': ABM_data
+        }
+        torch.save(data_to_save, settings["data"]["data_dir"] + '/ABM_data.pth')
+        
     else:
         # Load the data from file
-        loaded_data = np.load(settings["data"]["data_dir"] + '/ABM_data.npz')
+        loaded_data = torch.load(settings["data"]["data_dir"] + '/ABM_data.pth')
+        X = loaded_data['X']
+        Y = loaded_data['Y']
+        ABM_data = loaded_data['ABM_data']
 
         X = torch.tensor(loaded_data['X'], dtype=torch.float32)
         Y = torch.tensor(loaded_data['Y'], dtype=torch.float32)
@@ -141,24 +158,44 @@ if __name__ == "__main__":
         predictions_np = np.concatenate(predictions, axis=0)
         actual_np = np.concatenate(actual, axis=0)
 
-        # Select 25 random epidemics for plotting
-        num_plots = 25
+        # Select 9 random epidemics for plotting
+        num_plots = 9
         indices = np.random.choice(range(predictions_np.shape[0]), size=num_plots, replace=False)
 
-        # Create a 5x5 grid of subplots
-        fig, axes = plt.subplots(5, 5, figsize=(20, 20))
+        # Extract infection and recovery rates for the selected epidemics
+        selected_infection_rates = [ABM_data[i]['infection_rate'] for i in indices]
+        selected_recovery_rates = [ABM_data[i]['recovery_rate'] for i in indices]
+
+        # Create a 3x3 grid of subplots
+        fig, axes = plt.subplots(3, 3, figsize=(20, 20))
 
         for i, ax in enumerate(axes.flat):
             idx = indices[i]
-            ax.plot(predictions_np[idx], label='Predicted')
-            ax.plot(actual_np[idx], label='Actual')
-            ax.set_title(f'Epidemic {idx+1}')
+            infection_rate = selected_infection_rates[i]
+            recovery_rate = selected_recovery_rates[i]
+
+            # Find all actual epidemics with the same infection and recovery rate
+            matched_indices = [j for j, d in enumerate(ABM_data) if d['infection_rate'] == infection_rate and d['recovery_rate'] == recovery_rate]
+
+            # Plot all matched actual epidemics
+            for m_idx in matched_indices:
+                ax.plot(actual_np[m_idx], label=f'Actual {m_idx+1}')
+
+            # Plot predicted epidemic
+            ax.plot(predictions_np[idx], label='Predicted', linestyle='--', color='black')
+
+            # Annotate the infection and recovery rates
+            ax.annotate(f"Inf. Rate: {infection_rate:.2f}", xy=(0.05, 0.9), xycoords='axes fraction')
+            ax.annotate(f"Rec. Rate: {recovery_rate:.2f}", xy=(0.05, 0.85), xycoords='axes fraction')
+
+            ax.set_title(f'Epidemics for Inf. Rate {infection_rate:.2f} & Rec. Rate {recovery_rate:.2f}', fontsize = 9)
             ax.set_xlabel('Time Step')
-            ax.set_ylabel('New Infections')
+            ax.set_ylabel('Incidence (factor: 1000)')
             ax.legend()
 
         # Adjust the layout so the plots do not overlap
         plt.tight_layout()
+        plt.subplots_adjust(hspace=0.25)
         plt.show()
 
     elif settings["execution"]["mode"] == "emulation":
