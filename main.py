@@ -8,49 +8,68 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 from ABM import generate_ABM_data
-from models import FFNN, GRU
+from models import FFNN, GRU, LSTM
 from training import train_model
 from testing import run_emulator
 
 # User settings
 settings = {
-    "num_workers": 0,
-    "random_seed": 42,
-    "infection_rate_range": (0.05, 0.25),
-    "recovery_rate_range": (0.05, 0.25),
-    "population_size": 10000,
-    "num_time_steps": 256,
-    "num_realisations": 100,
-    "num_iterations": 10,
-    "nn_epochs": 256,
-    "nn_batch_size": 32,
-    "input_size": 3,
-    "hidden_size": 64,
-    "output_size": 256,
-    "learning_rate": 0.001,
-    "model_type": "LSTM",  # FFNN or "GRU"
-    "test_pct": 0.1,
-    "val_pct": 0.1,
-    "mode": "comparison",  # emulation or "comparison"
-    "scenario": [0.15, 0.10, 1000]  # a specific scenario with the infection rate, recovery rate, and population size
+    "generate_ABM": False, # True generate ABM data, False use from save file
+    "data_dir": "D:/Malaria/siremu/data",  # specify the directory
+    "num_workers": 0, # Workers for DataLoader
+    "max_workers": 12, # Workers for ProcessPoolExecutor
+    "random_seed": 42, #RNG
+    "infection_rate_range": (0.25, 2.5), # ABM range to sample from for infection rate
+    "recovery_rate_range": (0.05, 0.5), # ABM range to sample from for recovery rate
+    "population_size": 10000, # ABM pop size
+    "num_time_steps": 256, # ABM time-series steps
+    "num_realisations": 1000, # Number of realisations for a given set of rates
+    "num_iterations": 25, # Number of iterations that re-run ABM model with a fixed set of rates
+    "nn_epochs": 256, # Training epochs
+    "nn_batch_size": 32, # Training batch sizes
+    "shuffle": True, # DataLoader shuffle
+    "input_size": 3, # Input neuron size
+    "hidden_size": 64, # Hidden neurons
+    "output_size": 256, # Output neuron size
+        "lr_scheduler": { # Learning rate scheduler settings
+        "learning_rate": 0.001, # Initial learning rate
+        "step_size": 64, # Steps to wait until learning rate is changed
+        "gamma": 0.8 # Learning rate reduction factor
+    },
+    "model_type": "GRU", # Models: FFNN, GRU, LSTM
+    "test_pct": 0.1, # Test fraction 
+    "val_pct": 0.1, # Validation fraction
+    "mode": "comparison",  # emulation or comparison modes
+    "scenario": [1.15, 0.10, 5000]  # a specific scenario with the infection rate, recovery rate, and population size
 }
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    # Data generation
-    np.random.seed(settings["random_seed"])
-    ABM_data = generate_ABM_data(settings)
+    if settings["generate_ABM"]:
+        # Data generation
+        np.random.seed(settings["random_seed"])
+        ABM_data = generate_ABM_data(settings)
 
-    X = []
-    Y = []
+        X = []
+        Y = []
 
-    for realisation in ABM_data:
-        X.append([np.random.uniform(*settings["infection_rate_range"]), np.random.uniform(*settings["recovery_rate_range"]), settings["population_size"]])
-        Y.append(realisation['incidences'])
+        for realisation in ABM_data:
+            X.append([np.random.uniform(*settings["infection_rate_range"]), np.random.uniform(*settings["recovery_rate_range"]), settings["population_size"]])
+            Y.append(realisation['incidences'])
 
-    X = torch.tensor(X, dtype=torch.float32)
-    Y = torch.stack([torch.tensor(i, dtype=torch.float32) for i in Y]) 
+        X = torch.tensor(X, dtype=torch.float32)
+        Y = torch.stack([torch.tensor(i, dtype=torch.float32) for i in Y]) 
+
+        # Save the generated data
+        np.savez(settings["data_dir"] + '/ABM_data.npz', X=X.numpy(), Y=Y.numpy())
+    else:
+        # Load the data from file
+        loaded_data = np.load(settings["data_dir"] + '/ABM_data.npz')
+
+        X = torch.tensor(loaded_data['X'], dtype=torch.float32)
+        Y = torch.tensor(loaded_data['Y'], dtype=torch.float32)
+
 
     # Split data into train, validation and test
     X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["test_pct"], random_state=settings["random_seed"])
@@ -74,9 +93,9 @@ if __name__ == "__main__":
     test_data = TensorDataset(X_test, Y_test)
 
     # Create data loaders
-    train_loader = DataLoader(train_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
-    val_loader = DataLoader(val_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
-    test_loader = DataLoader(test_data, batch_size=settings["nn_batch_size"], shuffle=True, num_workers=settings["num_workers"])
+    train_loader = DataLoader(train_data, batch_size=settings["nn_batch_size"], shuffle=settings["shuffle"], num_workers=settings["num_workers"])
+    val_loader = DataLoader(val_data, batch_size=settings["nn_batch_size"], shuffle=settings["shuffle"], num_workers=settings["num_workers"])
+    test_loader = DataLoader(test_data, batch_size=settings["nn_batch_size"], shuffle=settings["shuffle"], num_workers=settings["num_workers"])
 
     # Model selection
     if settings["model_type"] == 'FFNN':
@@ -84,14 +103,14 @@ if __name__ == "__main__":
     elif settings["model_type"] == 'GRU':
         model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
     elif settings["model_type"] == 'LSTM':
-        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
+        model = LSTM(settings["input_size"], settings["hidden_size"], settings["output_size"])
 
     # Define loss and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=settings["learning_rate"])
+    optimizer = optim.Adam(model.parameters(), lr=settings["lr_scheduler"]["learning_rate"])
 
     # Train the model
-    train_model(model, criterion, optimizer, train_loader, val_loader, settings["nn_epochs"])
+    train_model(model, criterion, optimizer, train_loader, val_loader, settings)
     
     # Save the model after training
     torch.save(model.state_dict(), 'model.pth')
@@ -102,7 +121,7 @@ if __name__ == "__main__":
     elif settings["model_type"] == 'GRU':
         model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
     elif settings["model_type"] == 'LSTM':
-        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
+        model = LSTM(settings["input_size"], settings["hidden_size"], settings["output_size"])
 
     model.load_state_dict(torch.load('model.pth'))
 
