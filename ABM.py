@@ -19,12 +19,12 @@ def update_agents(agents, infection_rate, recovery_rate, N):
     return agents, new_infections, new_recoveries
 
 def generate_iteration(infection_rate, recovery_rate, settings):
-    agents = np.repeat('S', settings["population_size"])
-    agents[np.random.choice(settings["population_size"])] = 'I'
+    agents = np.repeat('S', settings["ABM"]["population_size"])
+    agents[np.random.choice(settings["ABM"]["population_size"])] = 'I'
     SIR_data = {'S': [], 'I': [], 'R': []}
     incidences = []
-    for t in range(1, settings["num_time_steps"] + 1):
-        agents, new_infections, new_recoveries = update_agents(agents, infection_rate, recovery_rate, settings["population_size"])
+    for t in range(1, settings["ABM"]["num_time_steps"] + 1):
+        agents, new_infections, new_recoveries = update_agents(agents, infection_rate, recovery_rate, settings["ABM"]["population_size"])
         SIR_data['S'].append(np.sum(agents == 'S'))
         SIR_data['I'].append(np.sum(agents == 'I'))
         SIR_data['R'].append(np.sum(agents == 'R'))
@@ -34,16 +34,16 @@ def generate_iteration(infection_rate, recovery_rate, settings):
 def generate_ABM_data(settings):
     all_realisations = []
 
-    realisation_progress = tqdm(range(settings["num_realisations"]), desc='Realisations', dynamic_ncols=True)
+    realisation_progress = tqdm(range(settings["ABM"]["num_realisations"]), desc='Realisations', dynamic_ncols=True)
 
-    np.random.seed(settings["random_seed"])
+    np.random.seed(settings["execution"]["random_seed"])
 
     for _ in realisation_progress:
-        infection_rate = np.random.uniform(*settings["infection_rate_range"])
-        recovery_rate = np.random.uniform(*settings["recovery_rate_range"])
+        infection_rate = np.random.uniform(*settings["ABM"]["infection_rate_range"])
+        recovery_rate = np.random.uniform(*settings["ABM"]["recovery_rate_range"])
 
-        with ProcessPoolExecutor(max_workers=settings["max_workers"]) as executor:
-            future_results = [executor.submit(generate_iteration, infection_rate, recovery_rate, settings) for _ in range(settings["num_iterations"])]
+        with ProcessPoolExecutor(max_workers=settings["execution"]["max_workers"]) as executor:
+            future_results = [executor.submit(generate_iteration, infection_rate, recovery_rate, settings) for _ in range(settings["ABM"]["num_iterations"])]
             all_realisations.extend([future.result() for future in future_results])
 
     return all_realisations

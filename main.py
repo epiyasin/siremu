@@ -14,66 +14,74 @@ from testing import run_emulator
 
 # User settings
 settings = {
-    "generate_ABM": False, # True generate ABM data, False use from save file
-    "data_dir": "D:/Malaria/siremu/data",  # specify the directory
-    "num_workers": 0, # Workers for DataLoader
-    "max_workers": 12, # Workers for ProcessPoolExecutor
-    "random_seed": 42, #RNG
-    "infection_rate_range": (0.25, 2.5), # ABM range to sample from for infection rate
-    "recovery_rate_range": (0.05, 0.5), # ABM range to sample from for recovery rate
-    "population_size": 10000, # ABM pop size
-    "num_time_steps": 256, # ABM time-series steps
-    "num_realisations": 1000, # Number of realisations for a given set of rates
-    "num_iterations": 25, # Number of iterations that re-run ABM model with a fixed set of rates
-    "nn_epochs": 256, # Training epochs
-    "nn_batch_size": 32, # Training batch sizes
-    "shuffle": True, # DataLoader shuffle
-    "input_size": 3, # Input neuron size
-    "hidden_size": 64, # Hidden neurons
-    "output_size": 256, # Output neuron size
-        "lr_scheduler": { # Learning rate scheduler settings
-        "learning_rate": 0.001, # Initial learning rate
-        "step_size": 64, # Steps to wait until learning rate is changed
-        "gamma": 0.8 # Learning rate reduction factor
+    "data": {
+        "generate_ABM": True, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
+        "data_dir": "D:/Malaria/siremu/data", # Directory containing the preprocessed ABM dataset
+        "num_workers": 0, # Number of workers to use for loading data in DataLoader
+        "shuffle": True, # If True, shuffles the data in DataLoader
+        "test_pct": 0.1, # Fraction of data used for testing
+        "val_pct": 0.1  # Fraction of data used for validation
     },
-    "model_type": "GRU", # Models: FFNN, GRU, LSTM
-    "test_pct": 0.1, # Test fraction 
-    "val_pct": 0.1, # Validation fraction
-    "mode": "comparison",  # emulation or comparison modes
-    "scenario": [1.15, 0.10, 5000]  # a specific scenario with the infection rate, recovery rate, and population size
+    "execution": {
+        "max_workers": 12, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
+        "random_seed": 42, # Seed for random number generator to ensure reproducibility
+        "mode": "comparison"  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
+    },
+    "ABM": {
+        "infection_rate_range": (0.25, 2.5), # Range of daily infection rates to sample from
+        "recovery_rate_range": (0.05, 0.5), # Range of daily recovery rates to sample from
+        "population_size": 10000, # Total population size
+        "num_time_steps": 256, # Number of time-series steps in ABM
+        "num_realisations": 50, # Number of different realisations (i.e., simulations) for a given set of rates
+        "num_iterations": 10, # Number of iterations to re-run the ABM with a fixed set of rates
+        "scenario": [1.15, 0.10, 5000]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
+    },
+    "neural_net": {
+        "nn_epochs": 256, # Number of training epochs
+        "nn_batch_size": 32, # Number of samples per batch to load
+        "input_size": 3, # Number of input neurons
+        "hidden_size": 64, # Number of hidden neurons in the layer
+        "output_size": 256, # Number of output neurons
+        "model_type": "GRU", # Type of neural network model: FFNN, GRU, or LSTM
+        "lr_scheduler": { 
+            "learning_rate": 0.001, # Initial learning rate for the optimizer
+            "step_size": 64, # Number of epochs before changing the learning rate
+            "gamma": 0.8 # Factor to reduce the learning rate by
+        }
+    }
 }
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    if settings["generate_ABM"]:
+    if settings["data"]["generate_ABM"]:
         # Data generation
-        np.random.seed(settings["random_seed"])
+        np.random.seed(settings["execution"]["random_seed"])
         ABM_data = generate_ABM_data(settings)
 
         X = []
         Y = []
 
         for realisation in ABM_data:
-            X.append([np.random.uniform(*settings["infection_rate_range"]), np.random.uniform(*settings["recovery_rate_range"]), settings["population_size"]])
+            X.append([np.random.uniform(*settings["ABM"]["infection_rate_range"]), np.random.uniform(*settings["ABM"]["recovery_rate_range"]), settings["ABM"]["population_size"]])
             Y.append(realisation['incidences'])
 
         X = torch.tensor(X, dtype=torch.float32)
         Y = torch.stack([torch.tensor(i, dtype=torch.float32) for i in Y]) 
 
         # Save the generated data
-        np.savez(settings["data_dir"] + '/ABM_data.npz', X=X.numpy(), Y=Y.numpy())
+        np.savez(settings["data"]["data_dir"] + '/ABM_data.npz', X=X.numpy(), Y=Y.numpy())
     else:
         # Load the data from file
-        loaded_data = np.load(settings["data_dir"] + '/ABM_data.npz')
+        loaded_data = np.load(settings["data"]["data_dir"] + '/ABM_data.npz')
 
         X = torch.tensor(loaded_data['X'], dtype=torch.float32)
         Y = torch.tensor(loaded_data['Y'], dtype=torch.float32)
 
 
     # Split data into train, validation and test
-    X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["test_pct"], random_state=settings["random_seed"])
-    X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=settings["val_pct"]/(1-settings["test_pct"]), random_state=settings["random_seed"])
+    X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["data"]["test_pct"], random_state=settings["execution"]["random_seed"])
+    X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=settings["data"]["val_pct"]/(1-settings["data"]["test_pct"]), random_state=settings["execution"]["random_seed"])
 
     scaler = StandardScaler()
     
@@ -93,21 +101,21 @@ if __name__ == "__main__":
     test_data = TensorDataset(X_test, Y_test)
 
     # Create data loaders
-    train_loader = DataLoader(train_data, batch_size=settings["nn_batch_size"], shuffle=settings["shuffle"], num_workers=settings["num_workers"])
-    val_loader = DataLoader(val_data, batch_size=settings["nn_batch_size"], shuffle=settings["shuffle"], num_workers=settings["num_workers"])
-    test_loader = DataLoader(test_data, batch_size=settings["nn_batch_size"], shuffle=settings["shuffle"], num_workers=settings["num_workers"])
+    train_loader = DataLoader(train_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
+    val_loader = DataLoader(val_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
+    test_loader = DataLoader(test_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
 
     # Model selection
-    if settings["model_type"] == 'FFNN':
-        model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
-    elif settings["model_type"] == 'GRU':
-        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
-    elif settings["model_type"] == 'LSTM':
-        model = LSTM(settings["input_size"], settings["hidden_size"], settings["output_size"])
+    if settings["neural_net"]["model_type"] == 'FFNN':
+        model = FFNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    elif settings["neural_net"]["model_type"] == 'GRU':
+        model = GRU(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    elif settings["neural_net"]["model_type"] == 'LSTM':
+        model = LSTM(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
 
     # Define loss and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=settings["lr_scheduler"]["learning_rate"])
+    optimizer = optim.Adam(model.parameters(), lr=settings["neural_net"]["lr_scheduler"]["learning_rate"])
 
     # Train the model
     train_model(model, criterion, optimizer, train_loader, val_loader, settings)
@@ -116,16 +124,16 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), 'model.pth')
 
     # Load the model when you want to run the emulator
-    if settings["model_type"] == 'FFNN':
-        model = FFNN(settings["input_size"], settings["hidden_size"], settings["output_size"])
-    elif settings["model_type"] == 'GRU':
-        model = GRU(settings["input_size"], settings["hidden_size"], settings["output_size"])
-    elif settings["model_type"] == 'LSTM':
-        model = LSTM(settings["input_size"], settings["hidden_size"], settings["output_size"])
+    if settings["neural_net"]["model_type"] == 'FFNN':
+        model = FFNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    elif settings["neural_net"]["model_type"] == 'GRU':
+        model = GRU(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    elif settings["neural_net"]["model_type"] == 'LSTM':
+        model = LSTM(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
 
     model.load_state_dict(torch.load('model.pth'))
 
-    if settings["mode"] == "comparison":
+    if settings["execution"]["mode"] == "comparison":
         # Run the emulator
         predictions, actual = run_emulator(model, test_loader)
 
@@ -153,9 +161,9 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.show()
 
-    elif settings["mode"] == "emulation":
+    elif settings["execution"]["mode"] == "emulation":
         # Define the specific scenario to emulate
-        scenario = torch.tensor([settings["scenario"]], dtype=torch.float32)
+        scenario = torch.tensor([settings["ABM"]["scenario"]], dtype=torch.float32)
 
         # Use the model to emulate the scenario
         with torch.no_grad():
