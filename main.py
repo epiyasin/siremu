@@ -25,7 +25,8 @@ settings = {
     "execution": {
         "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
         "random_seed": 42, # Seed for random number generator to ensure reproducibility
-        "mode": "comparison"  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
+        "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
+        "cached_model": True
     },
     "ABM": {
         "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
@@ -133,16 +134,15 @@ if __name__ == "__main__":
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=settings["neural_net"]["lr_scheduler"]["learning_rate"])
 
-    # Train the model
-    train_model(model, criterion, optimizer, train_loader, val_loader, settings)
-    
-    # Save the model after training
-    torch.save(model.state_dict(), 'model.pth')
-
-    # Load the model when you want to run the emulator
-    model = select_model(settings)
-        
-    model.load_state_dict(torch.load('model.pth'))
+    if settings["execution"]["cached_model"]:       
+         # Load the model when you want to run the emulator
+        model = select_model(settings)
+        model.load_state_dict(torch.load(settings["neural_net"]["model_type"] + 'model.pth'))
+    else:
+        # Train the model
+        train_model(model, criterion, optimizer, train_loader, val_loader, settings)
+        # Save the model after training
+        torch.save(model.state_dict(), settings["neural_net"]["model_type"] + 'model.pth')
 
     if settings["execution"]["mode"] == "comparison":
         # Run the emulator
