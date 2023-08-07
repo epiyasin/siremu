@@ -25,7 +25,7 @@ settings = {
     "execution": {
         "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
         "random_seed": 42, # Seed for random number generator to ensure reproducibility
-        "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
+        "mode": "emulation",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
         "cached_model": True
     },
     "ABM": {
@@ -35,7 +35,7 @@ settings = {
         "num_time_steps": 256, # Number of time-series steps in ABM
         "num_realisations": 128, # Number of different realisations (i.e., simulations) for a given set of rates
         "num_iterations": 16, # Number of iterations to re-run the ABM with a fixed set of rates
-        "scenario": [1.15, 0.10, 5000]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
+        "scenario": [0, 0, 0]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
     },
     "neural_net": {
         "nn_epochs": 256, # Number of training epochs
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=settings["neural_net"]["lr_scheduler"]["learning_rate"])
 
-    if settings["execution"]["cached_model"]:       
+    if settings["execution"]["cached_model"]:
          # Load the model when you want to run the emulator
         model = select_model(settings)
         model.load_state_dict(torch.load(settings["neural_net"]["model_type"] + 'model.pth'))
