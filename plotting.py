@@ -46,6 +46,15 @@ def plot_comparison(predictions, actual, ABM_data, settings):
 
         # Plot the average of actual epidemics
         ax.plot(actual_means, linestyle='--', color='red')  # This line plots the average
+        
+            # Calculate maximum y value based on average and predicted values
+        max_val = np.max([actual_means.max(), predictions_np[idx].max()])
+    
+    	# Round up to the nearest 10
+        rounded_max = int(np.ceil(max_val / 10.0)) * 10
+
+    	# Set y limits - here 0 is assumed as minimum, adjust if needed
+        ax.set_ylim(0, rounded_max)
 
         ax.set_title(f'Epidemics for Inf. Rate {infection_rate:.3f} & Rec. Rate {recovery_rate:.3f}', fontsize = 9)
         ax.set_xlabel('Time Step')
