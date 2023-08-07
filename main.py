@@ -15,7 +15,7 @@ from testing import run_emulator
 # User settings
 settings = {
     "data": {
-        "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
+        "generate_ABM": True, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
         "data_dir": "D:/Malaria/siremu/data", # Directory containing the preprocessed ABM dataset
         "num_workers": 0, # Number of workers to use for loading data in DataLoader
         "shuffle": True, # If True, shuffles the data in DataLoader
@@ -28,8 +28,8 @@ settings = {
         "mode": "comparison"  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
     },
     "ABM": {
-        "infection_rate_range": (0.2, 1.0), # Range of daily infection rates to sample from
-        "recovery_rate_range": (0.05, 0.2), # Range of daily recovery rates to sample from
+        "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
+        "recovery_rate_range": (0.1, 0.5), # Range of daily recovery rates to sample from
         "population_size": 10000, # Total population size
         "num_time_steps": 256, # Number of time-series steps in ABM
         "num_realisations": 128, # Number of different realisations (i.e., simulations) for a given set of rates
