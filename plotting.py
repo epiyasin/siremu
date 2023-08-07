@@ -66,14 +66,10 @@ def plot_comparison(predictions, actual, ABM_data, settings):
     plt.subplots_adjust(hspace=0.25)
     plt.show()
 
-def plot_emulation(scenario, model, settings):
-    # Use the model to emulate the scenario
-    with torch.no_grad():
-        predicted_incidence = model(scenario)
-
+def plot_emulation(predicted_output, settings):
     # Plot the predicted incidence
-    plt.figure(figsize=(10, 5))
-    plt.plot(predicted_incidence[0].numpy(), label='Predicted Incidence')
+    plt.figure(figsize=settings["plotting"]["figure_size_emulation"])
+    plt.plot(predicted_output[0].numpy(), label='Predicted Incidence')
     plt.title('Emulated Epidemic')
     plt.xlabel('Time Step')
     plt.ylabel('New Infections')

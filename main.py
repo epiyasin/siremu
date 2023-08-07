@@ -35,7 +35,7 @@ settings = {
         "num_time_steps": 256, # Number of time-series steps in ABM
         "num_realisations": 128, # Number of different realisations (i.e., simulations) for a given set of rates
         "num_iterations": 16, # Number of iterations to re-run the ABM with a fixed set of rates
-        "scenario": [0, 0, 0]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
+        "scenario": [0.2, 0.3, 10000]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
     },
     "neural_net": {
         "nn_epochs": 256, # Number of training epochs
@@ -152,8 +152,15 @@ if __name__ == "__main__":
         plot_comparison(predictions, actual, ABM_data, settings)
 
     elif settings["execution"]["mode"] == "emulation":
-        # Define the specific scenario to emulate
-        scenario = torch.tensor([settings["ABM"]["scenario"]], dtype=torch.float32)
+        # Emulate using the specific scenario
+        emulation_input = torch.tensor([settings["ABM"]["scenario"]], dtype=torch.float32)
+        
+        # Normalize input
+        emulation_input_scaled = scaler.transform(emulation_input.numpy())
+        emulation_input = torch.tensor(emulation_input_scaled, dtype=torch.float32).unsqueeze(0)
+        
+        with torch.no_grad():
+            emulation_output = model(emulation_input)
 
-        # Call the emulation plotting function
-        plot_emulation(scenario, model, settings)
+        # Call the plotting function for emulation
+        plot_emulation(emulation_output, settings)
