@@ -11,6 +11,7 @@ from models import FFNN, GRU, LSTM, BiRNN
 from training import train_model
 from testing import run_emulator
 from plotting import plot_comparison, plot_emulation
+from utils import select_model
 # User settings
 settings = {
     "data": {
@@ -37,7 +38,7 @@ settings = {
     },
     "neural_net": {
         "nn_epochs": 256, # Number of training epochs
-        "nn_batch_size": 32, # Number of samples per batch to load
+        "nn_batch_size": 64, # Number of samples per batch to load
         "input_size": 3, # Number of input neurons
         "hidden_size": 64, # Number of hidden neurons in the layer
         "output_size": 256, # Number of output neurons
@@ -126,14 +127,7 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
 
     # Model selection
-    if settings["neural_net"]["model_type"] == 'FFNN':
-        model = FFNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-    elif settings["neural_net"]["model_type"] == 'GRU':
-        model = GRU(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-    elif settings["neural_net"]["model_type"] == 'LSTM':
-        model = LSTM(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-    elif settings["neural_net"]["model_type"] == 'BiRNN':
-        model = BiRNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    model = select_model(settings)
 
     # Define loss and optimizer
     criterion = nn.MSELoss()
@@ -146,14 +140,7 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), 'model.pth')
 
     # Load the model when you want to run the emulator
-    if settings["neural_net"]["model_type"] == 'FFNN':
-        model = FFNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-    elif settings["neural_net"]["model_type"] == 'GRU':
-        model = GRU(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-    elif settings["neural_net"]["model_type"] == 'LSTM':
-        model = LSTM(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-    elif settings["neural_net"]["model_type"] == 'BiRNN':
-        model = BiRNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    model = select_model(settings)
         
     model.load_state_dict(torch.load('model.pth'))
 
