@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 from ABM import generate_ABM_data
-from models import FFNN, GRU, LSTM
+from models import FFNN, GRU, LSTM, BiRNN
 from training import train_model
 from testing import run_emulator
 
@@ -42,7 +42,7 @@ settings = {
         "input_size": 3, # Number of input neurons
         "hidden_size": 64, # Number of hidden neurons in the layer
         "output_size": 256, # Number of output neurons
-        "model_type": "GRU", # Type of neural network model: FFNN, GRU, or LSTM
+        "model_type": "BiRNN", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
         "lr_scheduler": { 
             "learning_rate": 0.0001, # Initial learning rate for the optimizer
             "step_size": 64, # Number of epochs before changing the learning rate
@@ -92,9 +92,8 @@ if __name__ == "__main__":
         Y = loaded_data['Y']
         ABM_data = loaded_data['ABM_data']
 
-        X = torch.tensor(loaded_data['X'], dtype=torch.float32)
-        Y = torch.tensor(loaded_data['Y'], dtype=torch.float32)
-
+        X = loaded_data['X'].clone().detach()
+        Y = loaded_data['Y'].clone().detach()
 
     # Split data into train, validation and test
     X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["data"]["test_pct"], random_state=settings["execution"]["random_seed"])
@@ -129,6 +128,8 @@ if __name__ == "__main__":
         model = GRU(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
     elif settings["neural_net"]["model_type"] == 'LSTM':
         model = LSTM(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+    elif settings["neural_net"]["model_type"] == 'BiRNN':
+        model = BiRNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
 
     # Define loss and optimizer
     criterion = nn.MSELoss()
@@ -147,7 +148,9 @@ if __name__ == "__main__":
         model = GRU(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
     elif settings["neural_net"]["model_type"] == 'LSTM':
         model = LSTM(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
-
+    elif settings["neural_net"]["model_type"] == 'BiRNN':
+        model = BiRNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"])
+        
     model.load_state_dict(torch.load('model.pth'))
 
     if settings["execution"]["mode"] == "comparison":
