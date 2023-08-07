@@ -15,7 +15,7 @@ from testing import run_emulator
 # User settings
 settings = {
     "data": {
-        "generate_ABM": True, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
+        "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file
         "data_dir": "D:/Malaria/siremu/data", # Directory containing the preprocessed ABM dataset
         "num_workers": 0, # Number of workers to use for loading data in DataLoader
         "shuffle": True, # If True, shuffles the data in DataLoader
@@ -44,7 +44,7 @@ settings = {
         "output_size": 256, # Number of output neurons
         "model_type": "GRU", # Type of neural network model: FFNN, GRU, or LSTM
         "lr_scheduler": { 
-            "learning_rate": 0.001, # Initial learning rate for the optimizer
+            "learning_rate": 0.0001, # Initial learning rate for the optimizer
             "step_size": 64, # Number of epochs before changing the learning rate
             "gamma": 0.8 # Factor to reduce the learning rate by
         }
@@ -169,6 +169,12 @@ if __name__ == "__main__":
         # Create a 3x3 grid of subplots
         fig, axes = plt.subplots(3, 3, figsize=(20, 20))
 
+        handles = [
+        plt.Line2D([0], [0], color='grey', label='Actual'),
+        plt.Line2D([0], [0], linestyle='--', color='black', label='Predicted'),
+        plt.Line2D([0], [0], linestyle='--', color='red', label='Average Actual')
+    ]
+        
         for i, ax in enumerate(axes.flat):
             idx = indices[i]
             infection_rate = selected_infection_rates[i]
@@ -176,23 +182,30 @@ if __name__ == "__main__":
 
             # Find all actual epidemics with the same infection and recovery rate
             matched_indices = [j for j, d in enumerate(ABM_data) if d['infection_rate'] == infection_rate and d['recovery_rate'] == recovery_rate]
+            
+            # Compute the average of the actual epidemics
+            actual_means = np.mean([actual_np[j] for j in matched_indices], axis=0)
 
             # Plot all matched actual epidemics
             for m_idx in matched_indices:
-                ax.plot(actual_np[m_idx], label=f'Actual {m_idx+1}')
-
+                ax.plot(actual_np[m_idx], color='grey')
+                
             # Plot predicted epidemic
             ax.plot(predictions_np[idx], label='Predicted', linestyle='--', color='black')
 
-            # Annotate the infection and recovery rates
-            ax.annotate(f"Inf. Rate: {infection_rate:.2f}", xy=(0.05, 0.9), xycoords='axes fraction')
-            ax.annotate(f"Rec. Rate: {recovery_rate:.2f}", xy=(0.05, 0.85), xycoords='axes fraction')
+             # Plot the average of actual epidemics
+            ax.plot(actual_means, linestyle='--', color='red')  # This line plots the average
 
-            ax.set_title(f'Epidemics for Inf. Rate {infection_rate:.2f} & Rec. Rate {recovery_rate:.2f}', fontsize = 9)
+            # Annotate the infection and recovery rates
+            ax.annotate(f"Inf. Rate: {infection_rate:.3f}", xy=(0.05, 0.9), xycoords='axes fraction')
+            ax.annotate(f"Rec. Rate: {recovery_rate:.3f}", xy=(0.05, 0.85), xycoords='axes fraction')
+
+            ax.set_title(f'Epidemics for Inf. Rate {infection_rate:.3f} & Rec. Rate {recovery_rate:.3f}', fontsize = 9)
             ax.set_xlabel('Time Step')
             ax.set_ylabel('Incidence (factor: 1000)')
-            ax.legend()
-
+            ax.legend(handles=handles)
+        
+        
         # Adjust the layout so the plots do not overlap
         plt.tight_layout()
         plt.subplots_adjust(hspace=0.25)
