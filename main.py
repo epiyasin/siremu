@@ -25,8 +25,8 @@ settings = {
     "execution": {
         "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
         "random_seed": 42, # Seed for random number generator to ensure reproducibility
-        "mode": "emulation",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
-        "cached_model": True
+        "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
+        "cached_model": False
     },
     "ABM": {
         "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
@@ -43,7 +43,7 @@ settings = {
         "input_size": 3, # Number of input neurons
         "hidden_size": 64, # Number of hidden neurons in the layer
         "output_size": 256, # Number of output neurons
-        "model_type": "BiRNN", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
+        "model_type": "LSTM", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
         "lr_scheduler": { 
             "learning_rate": 0.0001, # Initial learning rate for the optimizer
             "step_size": 64, # Number of epochs before changing the learning rate
@@ -137,12 +137,12 @@ if __name__ == "__main__":
     if settings["execution"]["cached_model"]:
          # Load the model when you want to run the emulator
         model = select_model(settings)
-        model.load_state_dict(torch.load(settings["neural_net"]["model_type"] + 'model.pth'))
+        model.load_state_dict(torch.load("cached_models/" + settings["neural_net"]["model_type"] + 'model.pth'))
     else:
         # Train the model
         train_model(model, criterion, optimizer, train_loader, val_loader, settings)
         # Save the model after training
-        torch.save(model.state_dict(), settings["neural_net"]["model_type"] + 'model.pth')
+        torch.save(model.state_dict(), "cached_models/" + settings["neural_net"]["model_type"] + 'model.pth')
 
     if settings["execution"]["mode"] == "comparison":
         # Run the emulator
