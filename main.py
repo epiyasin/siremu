@@ -26,7 +26,7 @@ settings = {
         "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
         "random_seed": 42, # Seed for random number generator to ensure reproducibility
         "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
-        "cached_model": False
+        "cached_model": True
     },
     "ABM": {
         "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
@@ -43,12 +43,13 @@ settings = {
         "input_size": 3, # Number of input neurons
         "hidden_size": 64, # Number of hidden neurons in the layer
         "output_size": 256, # Number of output neurons
-        "model_type": "LSTM", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
+        "model_type": "BiRNN", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
         "lr_scheduler": { 
             "learning_rate": 0.0001, # Initial learning rate for the optimizer
             "step_size": 64, # Number of epochs before changing the learning rate
             "gamma": 0.8 # Factor to reduce the learning rate by
-        }
+        },
+        "dropout_prob": 0.5
     },
     "plotting": {
         "num_plots": 9,  # Number of random epidemics for plotting in comparison mode
