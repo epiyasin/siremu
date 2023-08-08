@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+from utils import distinct_rates
 
 def plot_comparison(predictions, actual, ABM_data, settings):
     # Convert predictions and actual to numpy for easier handling
@@ -9,7 +10,12 @@ def plot_comparison(predictions, actual, ABM_data, settings):
 
     # Select 9 random epidemics for plotting
     num_plots = settings["plotting"]["num_plots"]
+    
     indices = np.random.choice(range(predictions_np.shape[0]), size=num_plots, replace=False)
+    
+    # Make sure the indices correspond to distinct rates
+    while not distinct_rates(indices, ABM_data):
+        indices = np.random.choice(range(predictions_np.shape[0]), size=num_plots, replace=False)
 
     # Extract infection and recovery rates for the selected epidemics
     selected_infection_rates = [ABM_data[i]['infection_rate'] for i in indices]
