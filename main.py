@@ -6,7 +6,6 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-
 from ABM import generate_ABM_data
 from models import FFNN, GRU, LSTM, BiRNN
 from training import train_model
