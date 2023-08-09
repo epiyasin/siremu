@@ -1,13 +1,16 @@
 import torch
+
+from nn_mint_data_handler import prepare_nn_mint_data
 from testing import run_emulator
 from plotting import plot_comparison, plot_emulation
-from config import settings
 from ABM_simulation_data_handler import generate_data, load_data
-from utils import check_data_folder_exists, check_data_exists
+from utils import check_data_folder_exists, check_data_exists, generate_settings
 from nn_data_handler import prepare_nn_data
 from model_handler import handle_model
 
 if __name__ == "__main__":
+    source = "MINT"
+    settings = generate_settings(source=source)
     data_folder_path = settings["data"]["data_dir"]
 
     # Check if the data folder exists and create it if not
@@ -15,14 +18,16 @@ if __name__ == "__main__":
 
     # If the folder didn't exist, we know we need to generate data.
     # Otherwise, check if the data file exists within the folder
-    should_generate_data = not folder_exists or (folder_exists and not check_data_exists(data_folder_path))
+    if source == "ABM":
+        should_generate_data = not folder_exists or (folder_exists and not check_data_exists(data_folder_path))
 
-    if should_generate_data or settings["data"]["generate_ABM"]:
-        X, Y, ABM_data = generate_data()
+        if should_generate_data or settings["data"]["generate_ABM"]:
+            X, Y, ABM_data = generate_data()
+        else:
+            X, Y, ABM_data = load_data()
+        train_loader, val_loader, test_loader, scaler = prepare_nn_data(X, Y, settings)
     else:
-        X, Y, ABM_data = load_data()
-        
-    train_loader, val_loader, test_loader, scaler = prepare_nn_data(X, Y)
+        train_loader, val_loader, test_loader, scaler = prepare_nn_mint_data(settings)
 
     # Handle model (loading, training, etc.)
     model = handle_model(train_loader, val_loader)
