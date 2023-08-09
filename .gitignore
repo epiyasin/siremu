@@ -153,6 +153,7 @@ cython_debug/
 
 # Ignore the data folder and everything inside it
 /data/
+/mint_data/
 
 # Ignore the cached models
 /cached_models/
