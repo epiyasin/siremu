@@ -2,9 +2,8 @@ import os
 import numpy as np
 import torch
 from ABM import generate_ABM_data
-from config import settings
 
-def generate_data():
+def generate_data(settings):
     print("Generating data...")
 
     # Data generation
@@ -34,7 +33,7 @@ def generate_data():
     torch.save(data_to_save, os.path.join(settings["data"]["data_dir"], 'ABM_data.pth'))
     return X, Y, ABM_data
 
-def load_data():
+def load_data(settings):
     data_folder_path = settings["data"]["data_dir"]
     data_file_path = os.path.join(data_folder_path, 'ABM_data.pth')
     loaded_data = torch.load(data_file_path)

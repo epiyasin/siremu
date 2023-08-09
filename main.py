@@ -22,15 +22,15 @@ if __name__ == "__main__":
         should_generate_data = not folder_exists or (folder_exists and not check_data_exists(data_folder_path))
 
         if should_generate_data or settings["data"]["generate_ABM"]:
-            X, Y, ABM_data = generate_data()
+            X, Y, ABM_data = generate_data(settings)
         else:
-            X, Y, ABM_data = load_data()
+            X, Y, ABM_data = load_data(settings)
         train_loader, val_loader, test_loader, scaler = prepare_nn_data(X, Y, settings)
     else:
         train_loader, val_loader, test_loader, scaler = prepare_nn_mint_data(settings)
 
     # Handle model (loading, training, etc.)
-    model = handle_model(train_loader, val_loader)
+    model = handle_model(train_loader, val_loader, settings)
 
     if settings["execution"]["mode"] == "comparison":
         # Run the emulator
