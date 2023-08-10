@@ -1,30 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from utils import distinct_rates
+from utils import attach_identifier, distinct_rates
 
 def plot_comparison(predictions, actual, ABM_data, settings):
-    # Convert predictions and actual to numpy for easier handling
-    predictions_np = np.concatenate(predictions, axis=0)
-    actual_np = np.concatenate(actual, axis=0)
+    predictions_np = attach_identifier(predictions)
+    actual_np = attach_identifier(actual)
 
-    # Select 9 random epidemics for plotting
     num_plots = settings["plotting"]["num_plots"]
-    
-    indices = np.random.choice(range(predictions_np.shape[0]), size=num_plots, replace=False)
-    
-    # Make sure the indices correspond to distinct rates
-    while not distinct_rates(indices, ABM_data):
-        indices = np.random.choice(range(predictions_np.shape[0]), size=num_plots, replace=False)
 
-    # Extract infection and recovery rates for the selected epidemics
+    # Get distinct indices based on rates
+    indices = distinct_rates(ABM_data, num_plots)
+
     selected_infection_rates = [ABM_data[i]['infection_rate'] for i in indices]
     selected_recovery_rates = [ABM_data[i]['recovery_rate'] for i in indices]
 
-    # Create a 3x3 grid of subplots
-    fig, axes = plt.subplots(int(settings["plotting"]["num_plots"]**0.5),
-                             int(settings["plotting"]["num_plots"]**0.5),
-                             figsize=settings["plotting"]["figure_size_comparison"])
+    fig, axes = plt.subplots(int(num_plots**0.5), int(num_plots**0.5), figsize=settings["plotting"]["figure_size_comparison"])
 
     handles = [
         plt.Line2D([0], [0], color='grey', label='Actual'),
@@ -37,43 +28,30 @@ def plot_comparison(predictions, actual, ABM_data, settings):
         infection_rate = selected_infection_rates[i]
         recovery_rate = selected_recovery_rates[i]
 
-        # Find all actual epidemics with the same infection and recovery rate
         matched_indices = [j for j, d in enumerate(ABM_data) if d['infection_rate'] == infection_rate and d['recovery_rate'] == recovery_rate]
-        
-        # Compute the average of the actual epidemics
-        actual_means = np.mean([actual_np[j] for j in matched_indices], axis=0)
 
-        # Plot all matched actual epidemics
+        actual_means = np.mean([actual_np[j, :-1] for j in matched_indices], axis=0)
+
         for m_idx in matched_indices:
-            ax.plot(actual_np[m_idx], color='grey')
-            
-        # Plot predicted epidemic
-        ax.plot(predictions_np[idx], label='Predicted', linestyle='--', color='black')
+            ax.plot(actual_np[m_idx, :-1], color='grey')
 
-        # Plot the average of actual epidemics
-        ax.plot(actual_means, linestyle='--', color='red')  # This line plots the average
-        
-            # Calculate maximum y value based on average and predicted values
-        max_val = np.max([actual_means.max(), predictions_np[idx].max()])
-    
-    	# Round up to the nearest 10
+        ax.plot(predictions_np[idx, :-1], label='Predicted', linestyle='--', color='black')
+        ax.plot(actual_means, linestyle='--', color='red')
+
+        max_val = np.max([actual_means.max(), predictions_np[idx, :-1].max()])
         rounded_max = int(np.ceil(max_val / 10.0)) * 10
-
-    	# Set y limits - here 0 is assumed as minimum, adjust if needed
         ax.set_ylim(0, rounded_max)
 
         ax.set_title(f'Epidemics for Inf. Rate {infection_rate:.3f} & Rec. Rate {recovery_rate:.3f}', fontsize = 9)
         ax.set_xlabel('Time Step')
         ax.set_ylabel('Incidence (factor: 1000)')
         ax.legend(handles=handles)
-        
-    # Adjust the layout so the plots do not overlap
+
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.25)
     plt.show()
 
 def plot_emulation(predicted_output, settings):
-    # Plot the predicted incidence
     plt.figure(figsize=settings["plotting"]["figure_size_emulation"])
     plt.plot(predicted_output[0].numpy(), label='Predicted Incidence')
     plt.title('Emulated Epidemic')
