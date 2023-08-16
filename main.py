@@ -2,7 +2,7 @@ import torch
 
 from nn_mint_data_handler import prepare_nn_mint_data
 from testing import run_emulator
-from plotting import plot_comparison, plot_emulation
+from plotting import plot_comparison, plot_emulation, plot_mint_compare, plot_mint_time_series, plot_mint_avg_compare, plot_mint_avg_time_series
 from ABM_simulation_data_handler import generate_data, load_data
 from utils import check_data_folder_exists, check_data_exists, generate_settings
 from nn_data_handler import prepare_nn_data
@@ -32,23 +32,32 @@ if __name__ == "__main__":
     # Handle model (loading, training, etc.)
     model = handle_model(train_loader, val_loader, settings)
 
-    if settings["execution"]["mode"] == "comparison":
-        # Run the emulator
-        predictions, actual = run_emulator(model, test_loader)
-        
-        # Call the plotting function
-        plot_comparison(predictions, actual, ABM_data, settings)
+    if source == "MINT":
+        if settings["execution"]["mode"] == "comparison":
+	        # Run the emulator
+            predictions, actual = run_emulator(model, test_loader)
+            plot_mint_compare(predictions, actual, settings)
+            plot_mint_time_series(predictions, actual, settings)
+            plot_mint_avg_compare(predictions, actual, settings)
+            plot_mint_avg_time_series(predictions, actual, settings)
 
-    elif settings["execution"]["mode"] == "emulation":
-        # Emulate using the specific scenario
-        emulation_input = torch.tensor([settings["ABM"]["scenario"]], dtype=torch.float32)
-        
-        # Normalize input
-        emulation_input_scaled = scaler.transform(emulation_input.numpy())
-        emulation_input = torch.tensor(emulation_input_scaled, dtype=torch.float32).unsqueeze(0)
-        
-        with torch.no_grad():
-            emulation_output = model(emulation_input)
+    else:   
+        if settings["execution"]["mode"] == "comparison":
+            # Run the emulator
+            predictions, actual = run_emulator(model, test_loader)
+            
+            # Call the plotting function
+            plot_comparison(predictions, actual, ABM_data, settings)        
+        elif settings["execution"]["mode"] == "emulation":
+            # Emulate using the specific scenario
+            emulation_input = torch.tensor([settings["ABM"]["scenario"]], dtype=torch.float32)
+            
+            # Normalize input
+            emulation_input_scaled = scaler.transform(emulation_input.numpy())
+            emulation_input = torch.tensor(emulation_input_scaled, dtype=torch.float32).unsqueeze(0)
+            
+            with torch.no_grad():
+                emulation_output = model(emulation_input)
 
-        # Call the plotting function for emulation
-        plot_emulation(emulation_output, settings)
+            # Call the plotting function for emulation
+            plot_emulation(emulation_output, settings)
