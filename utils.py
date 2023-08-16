@@ -46,7 +46,7 @@ def generate_settings(source="ABM"):
             "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
             "random_seed": 42, # Seed for random number generator to ensure reproducibility
             "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
-            "cached_model": True # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
+            "cached_model": False # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
         },
         "ABM": {
             "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
@@ -62,7 +62,7 @@ def generate_settings(source="ABM"):
             "data_path": os.path.join(os.getcwd(), "mint_data", "mint_data_scaled.csv"),
         },
         "neural_net": {
-            "nn_epochs": 4, # Number of training epochs
+            "nn_epochs": 32, # Number of training epochs
             "nn_batch_size": 64, # Number of samples per batch to load
             "input_size": 3 if source == "ABM" else 20, # Number of input neurons
             "hidden_size": 64, # Number of hidden neurons in the layer
