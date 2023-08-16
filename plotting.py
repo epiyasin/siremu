@@ -250,3 +250,11 @@ def plot_mint_avg_time_series(predictions, actual, settings):
     check.on_clicked(func)
 
     plt.show()
+    
+def plot_losses(train_losses, val_losses):
+    plt.plot(train_losses, label="Training Loss")
+    plt.plot(val_losses, label="Validation Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.show()
