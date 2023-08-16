@@ -43,7 +43,7 @@ def generate_settings(source="ABM"):
             "val_pct": 0.2  # Fraction of data used for validation
         },
         "execution": {
-            "max_workers": 4, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
+            "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
             "random_seed": 42, # Seed for random number generator to ensure reproducibility
             "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
             "cached_model": True # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
@@ -62,12 +62,12 @@ def generate_settings(source="ABM"):
             "data_path": os.path.join(os.getcwd(), "mint_data", "mint_data_scaled.csv"),
         },
         "neural_net": {
-            "nn_epochs": 256, # Number of training epochs
+            "nn_epochs": 4, # Number of training epochs
             "nn_batch_size": 64, # Number of samples per batch to load
             "input_size": 3 if source == "ABM" else 20, # Number of input neurons
             "hidden_size": 64, # Number of hidden neurons in the layer
             "output_size": 256 if source == "ABM" else 61, # Number of output neurons
-            "model_type": "BiRNN", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
+            "model_type": "LSTM", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
             "lr_scheduler": {
                 "learning_rate": 0.0001, # Initial learning rate for the optimizer
                 "step_size": 64, # Number of epochs before changing the learning rate
