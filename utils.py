@@ -67,7 +67,7 @@ def generate_settings(source="ABM"):
             "input_size": 3 if source == "ABM" else 20, # Number of input neurons
             "hidden_size": 64, # Number of hidden neurons in the layer
             "output_size": 256 if source == "ABM" else 61, # Number of output neurons
-            "model_type": "LSTM", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
+            "model_type": "BiRNN", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
             "lr_scheduler": {
                 "learning_rate": 0.0001, # Initial learning rate for the optimizer
                 "step_size": 64, # Number of epochs before changing the learning rate

@@ -156,4 +156,4 @@ cython_debug/
 /mint_data/
 
 # Ignore the cached models
-/cached_models/
+# /cached_models/
