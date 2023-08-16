@@ -29,12 +29,14 @@ class GRU(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
         self.ln = nn.LayerNorm(hidden_size)
         self.dropout = nn.Dropout(dropout_prob)  # Dropout before the FC layer
+        self.softplus = nn.Softplus()
 
     def forward(self, x):
         x, _ = self.gru(x.view(len(x), 1, -1))
         x = self.ln(x)
         x = self.dropout(x)
         x = self.fc(x.view(len(x), -1))
+        x = self.softplus(x)
         return x
 
     
@@ -46,12 +48,14 @@ class LSTM(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
         self.ln = nn.LayerNorm(hidden_size)
         self.dropout = nn.Dropout(dropout_prob)  # Dropout before the FC layer
+        self.softplus = nn.Softplus()
 
     def forward(self, x):
         x, _ = self.lstm(x.view(len(x), 1, -1))
         x = self.ln(x)
         x = self.dropout(x)
         x = self.fc(x.view(len(x), -1))
+        x = self.softplus(x)
         return x
 
 
@@ -63,11 +67,13 @@ class BiRNN(nn.Module):
         self.fc = nn.Linear(2 * hidden_size, output_size)
         self.ln = nn.LayerNorm(2 * hidden_size)
         self.dropout = nn.Dropout(dropout_prob)  # Dropout before the FC layer
+        self.softplus = nn.Softplus()
 
     def forward(self, x):
         x, _ = self.rnn(x.view(len(x), 1, -1))
         x = self.ln(x)
         x = self.dropout(x)
         x = self.fc(x.view(len(x), -1))
+        x = self.softplus(x)
         return x
 
