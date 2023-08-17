@@ -1,5 +1,4 @@
 import torch
-
 from nn_mint_data_handler import prepare_nn_mint_data
 from testing import run_emulator
 from plotting import plot_comparison, plot_emulation, plot_mint_compare, plot_mint_time_series, plot_mint_avg_compare, plot_mint_avg_time_series
@@ -8,10 +7,11 @@ from utils import check_data_folder_exists, check_data_exists, generate_settings
 from nn_data_handler import prepare_nn_data
 from model_handler import handle_model
 
+source = "MINT"
 if __name__ == "__main__":
-    source = "MINT"
+    
     settings = generate_settings(source=source)
-    data_folder_path = settings["data"]["data_dir"]
+    data_folder_path = settings["ABM"]["data"]["data_dir"]
 
     # Check if the data folder exists and create it if not
     folder_exists = check_data_folder_exists(data_folder_path)
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     if source == "ABM":
         should_generate_data = not folder_exists or (folder_exists and not check_data_exists(data_folder_path))
 
-        if should_generate_data or settings["data"]["generate_ABM"]:
+        if should_generate_data or settings["ABM"]["data"]["generate_ABM"]:
             X, Y, ABM_data = generate_data(settings)
         else:
             X, Y, ABM_data = load_data(settings)

@@ -34,21 +34,17 @@ def distinct_rates(indices, ABM_data):
 # User settings
 def generate_settings(source="ABM"):
     settings = {
-        "data": {
-            "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file (WARNING: If set to "True" and no data is detected it will run simulation program)
-            "data_dir": os.path.join(os.getcwd(), "data"), # Directory containing the preprocessed ABM dataset (ideally siremu)
-            "num_workers": 0, # Number of workers to use for loading data in DataLoader
-            "shuffle": True, # If True, shuffles the data in DataLoader
-            "test_pct": 0.2, # Fraction of data used for testing
-            "val_pct": 0.2  # Fraction of data used for validation
-        },
         "execution": {
             "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
             "random_seed": 42, # Seed for random number generator to ensure reproducibility
             "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
-            "cached_model": False # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
+            "cached_model": True # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
         },
         "ABM": {
+            "data": {
+                "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file (WARNING: If set to "True" and no data is detected it will run simulation program)
+                "data_dir": os.path.join(os.getcwd(), "data") # Directory containing the preprocessed ABM dataset (ideally siremu)
+            },
             "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
             "recovery_rate_range": (0.1, 0.5), # Range of daily recovery rates to sample from
             "population_size": 10000, # Total population size
@@ -58,8 +54,10 @@ def generate_settings(source="ABM"):
             "scenario": [0.2, 0.3, 10000]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
         },
         "MINT": {
-            "preprocess": False,
-            "data_path": os.path.join(os.getcwd(), "mint_data", "mint_data_scaled.csv"),
+            "data": {
+                "preprocess": False, # For now this will be False as the data is read from the folder
+                "data_path": os.path.join(os.getcwd(), "mint_data", "mint_data_scaled.csv"),
+            }
         },
         "neural_net": {
             "nn_epochs": 32, # Number of training epochs
@@ -73,7 +71,11 @@ def generate_settings(source="ABM"):
                 "step_size": 64, # Number of epochs before changing the learning rate
                 "gamma": 0.8 # Factor to reduce the learning rate by
             },
-            "dropout_prob": 0.5
+            "dropout_prob": 0.5,
+            "shuffle": True, # If True, shuffles the data in DataLoader
+            "num_workers": 0, # Number of workers to use for loading data in DataLoader
+            "test_pct": 0.2, # Fraction of data used for testing
+            "val_pct": 0.2  # Fraction of data used for validation
         },
         "plotting": {
             "num_plots": 9,  # Number of random epidemics for plotting in comparison mode

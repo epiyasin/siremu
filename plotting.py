@@ -86,7 +86,7 @@ def plot_emulation(predicted_output, settings):
     plt.show()
 
 def plot_mint_compare(predictions, actual, settings, num_samples=9):
-    file_path = settings['MINT'].get('data_path')
+    file_path = settings["MINT"]["data"].get('data_path')
     emulator_data = MintDataset(input_file=file_path)
 
     # Flatten the predictions and actual values into one-dimensional arrays
@@ -118,7 +118,7 @@ def plot_mint_compare(predictions, actual, settings, num_samples=9):
 
 
 def plot_mint_time_series(predictions, actual, settings, num_samples=9):
-    file_path = settings['MINT'].get('data_path')
+    file_path = settings["MINT"]["data"].get('data_path')
     emulator_data = MintDataset(input_file=file_path)
 
     # Flatten the predictions and actual values into one-dimensional arrays
@@ -155,7 +155,7 @@ def plot_mint_time_series(predictions, actual, settings, num_samples=9):
     plt.show()
     
 def plot_mint_avg_compare(predictions, actual, settings):
-    file_path = settings['MINT'].get('data_path')
+    file_path = settings["MINT"]["data"].get('data_path')
     emulator_data = MintDataset(input_file=file_path)
 
     # Flatten the predictions and actual values into one-dimensional arrays
@@ -180,7 +180,7 @@ def plot_mint_avg_compare(predictions, actual, settings):
 
 
 def plot_mint_avg_time_series(predictions, actual, settings):
-    file_path = settings['MINT'].get('data_path')
+    file_path = settings["MINT"]["data"].get('data_path')
     emulator_data = MintDataset(input_file=file_path)
 
     # Flatten the predictions and actual values into one-dimensional arrays

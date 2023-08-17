@@ -30,11 +30,11 @@ def generate_data(settings):
         'Y': Y,
         'ABM_data': ABM_data
     }
-    torch.save(data_to_save, os.path.join(settings["data"]["data_dir"], 'ABM_data.pth'))
+    torch.save(data_to_save, os.path.join(settings["ABM"]["data"]["data_dir"], 'ABM_data.pth'))
     return X, Y, ABM_data
 
 def load_data(settings):
-    data_folder_path = settings["data"]["data_dir"]
+    data_folder_path = settings["ABM"]["data"]["data_dir"]
     data_file_path = os.path.join(data_folder_path, 'ABM_data.pth')
     loaded_data = torch.load(data_file_path)
     X = loaded_data['X'].clone().detach()
