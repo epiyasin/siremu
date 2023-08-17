@@ -66,11 +66,11 @@ def generate_settings(source="ABM"):
                 "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file (WARNING: If set to "True" and no data is detected it will run simulation program)
                 "data_dir": os.path.join(os.getcwd(), "data") # Directory containing the preprocessed ABM dataset (ideally siremu)
             },
-            "infection_rate_range": (0.1, 0.5), # Range of daily infection rates to sample from
-            "recovery_rate_range": (0.1, 0.5), # Range of daily recovery rates to sample from
+            "infection_rate_range": (0.05, 0.8), # Range of daily infection rates to sample from
+            "recovery_rate_range": (0.05, 0.8), # Range of daily recovery rates to sample from
             "population_size": 10000, # Total population size
             "num_time_steps": 256, # Number of time-series steps in ABM
-            "num_realisations": 32, # Number of different realisations (i.e., simulations) for a given set of rates
+            "num_realisations": 128, # Number of different realisations (i.e., simulations) for a given set of rates
             "num_iterations": 8, # Number of iterations to re-run the ABM with a fixed set of rates
             "scenario": [0.2, 0.3, 10000]  # A specific scenario detailing daily infection rate, daily recovery rate, and population size
         },
@@ -86,7 +86,7 @@ def generate_settings(source="ABM"):
             "input_size": 3 if source == "ABM" else 20, # Number of input neurons
             "hidden_size": 64, # Number of hidden neurons in the layer
             "output_size": 256 if source == "ABM" else 61, # Number of output neurons
-            "model_type": "BiRNN", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
+            "model_type": "GRU", # Type of neural network model: FFNN, GRU, LSTM or BiRNN
             "lr_scheduler": {
                 "learning_rate": 0.0001, # Initial learning rate for the optimizer
                 "step_size": 64, # Number of epochs before changing the learning rate
