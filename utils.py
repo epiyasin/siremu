@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from models import FFNN, GRU, LSTM, BiRNN
 
 
@@ -28,10 +29,26 @@ def select_model(settings):
     elif settings["neural_net"]["model_type"] == 'BiRNN':
         return BiRNN(settings["neural_net"]["input_size"], settings["neural_net"]["hidden_size"], settings["neural_net"]["output_size"],settings["neural_net"]["dropout_prob"])
 
-def distinct_rates(indices, ABM_data):
-    # This function will check if the selected indices have distinct infection and recovery rates
-    rates = [(round(ABM_data[i]['infection_rate'], 3), round(ABM_data[i]['recovery_rate'], 3)) for i in indices]
-    return len(rates) == len(set(rates))
+def attach_identifier(data):
+    # Assumes the data is a list of numpy arrays
+    identifiers = [np.full((arr.shape[0], 1), i) for i, arr in enumerate(data)]
+    return np.concatenate([np.hstack((arr, id)) for arr, id in zip(data, identifiers)], axis=0)
+
+def distinct_rates(ABM_data, num_plots):
+    # Fetch distinct rates until you get the desired amount (or close to it)
+    distinct_indices = []
+    seen_rates = set()
+    
+    for i, data in enumerate(ABM_data):
+        rate_tuple = (data['infection_rate'], data['recovery_rate'])
+        if rate_tuple not in seen_rates:
+            seen_rates.add(rate_tuple)
+            distinct_indices.append(i)
+        
+        if len(distinct_indices) == num_plots:
+            break
+
+    return distinct_indices
 
 
 # User settings
