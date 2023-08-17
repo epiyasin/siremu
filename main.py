@@ -7,11 +7,12 @@ from utils import check_data_folder_exists, check_data_exists, generate_settings
 from nn_data_handler import prepare_nn_data
 from model_handler import handle_model
 
+source = "ABM"
 
 if __name__ == "__main__":
     
-    settings = generate_settings(source="MINT")
-    settings["execution"]["source"] = "MINT"
+    settings = generate_settings(source=source)
+    settings["execution"]["source"] = source
     data_folder_path = settings["ABM"]["data"]["data_dir"]
 
     # Check if the data folder exists and create it if not
