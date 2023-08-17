@@ -7,7 +7,7 @@ from utils import check_data_folder_exists, check_data_exists, generate_settings
 from nn_data_handler import prepare_nn_data
 from model_handler import handle_model
 
-source = "ABM"
+source = "MINT"
 
 if __name__ == "__main__":
     
@@ -47,6 +47,7 @@ if __name__ == "__main__":
         if settings["execution"]["mode"] == "comparison":
             # Run the emulator
             predictions, actual = run_emulator(model, test_loader)
+            
             
             # Call the plotting function
             plot_comparison(predictions, actual, ABM_data, settings)        
