@@ -12,8 +12,11 @@ def check_data_folder_exists(folder_path):
 def check_data_exists(data_dir):
     return os.path.exists(os.path.join(data_dir, 'ABM_data.pth'))
 
-def check_model_exists(model_type):
-    return os.path.exists(os.path.join("cached_models", model_type + 'model.pth'))
+def check_model_exists(model_type, source):
+    sub_folder = f"{source}_models"
+    model_path = os.path.join("cached_models", sub_folder, f"{source}_{model_type}model.pth")
+    return os.path.exists(model_path)
+
 
 def select_model(settings):
     if settings["neural_net"]["model_type"] == 'FFNN':
@@ -35,6 +38,7 @@ def distinct_rates(indices, ABM_data):
 def generate_settings(source="ABM"):
     settings = {
         "execution": {
+            "source": "MINT",
             "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
             "random_seed": 42, # Seed for random number generator to ensure reproducibility
             "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods

@@ -7,10 +7,11 @@ from utils import check_data_folder_exists, check_data_exists, generate_settings
 from nn_data_handler import prepare_nn_data
 from model_handler import handle_model
 
-source = "MINT"
+
 if __name__ == "__main__":
     
-    settings = generate_settings(source=source)
+    settings = generate_settings(source="MINT")
+    settings["execution"]["source"] = "MINT"
     data_folder_path = settings["ABM"]["data"]["data_dir"]
 
     # Check if the data folder exists and create it if not
@@ -18,7 +19,7 @@ if __name__ == "__main__":
 
     # If the folder didn't exist, we know we need to generate data.
     # Otherwise, check if the data file exists within the folder
-    if source == "ABM":
+    if settings["execution"]["source"] == "ABM":
         should_generate_data = not folder_exists or (folder_exists and not check_data_exists(data_folder_path))
 
         if should_generate_data or settings["ABM"]["data"]["generate_ABM"]:
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     # Handle model (loading, training, etc.)
     model = handle_model(train_loader, val_loader, settings)
 
-    if source == "MINT":
+    if settings["execution"]["source"] == "MINT":
         if settings["execution"]["mode"] == "comparison":
 	        # Run the emulator
             predictions, actual = run_emulator(model, test_loader)
