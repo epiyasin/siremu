@@ -52,15 +52,8 @@ def distinct_rates(ABM_data, num_plots):
 
 
 # User settings
-def generate_settings(source="ABM"):
+def generate_settings(source="MINT"):
     settings = {
-        "execution": {
-            "source": "MINT",
-            "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
-            "random_seed": 42, # Seed for random number generator to ensure reproducibility
-            "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
-            "cached_model": True # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
-        },
         "ABM": {
             "data": {
                 "generate_ABM": False, # If True, generates Agent-Based Model (ABM) data; if False, uses data from a saved file (WARNING: If set to "True" and no data is detected it will run simulation program)
@@ -79,6 +72,13 @@ def generate_settings(source="ABM"):
                 "preprocess": False, # For now this will be False as the data is read from the folder
                 "data_path": os.path.join(os.getcwd(), "mint_data", "mint_data_scaled.csv"),
             }
+        },
+        "execution": {
+            "source": "MINT",
+            "max_workers": 16, # Maximum number of workers for ProcessPoolExecutor (optimal for current system configuration)
+            "random_seed": 42, # Seed for random number generator to ensure reproducibility
+            "mode": "comparison",  # Mode of operation: 'emulation' to emulate the ABM or 'comparison' to compare with other methods
+            "cached_model": True # Used saved trained model (WARNING: If set to "True" and no cached model is detected it will run training program)
         },
         "neural_net": {
             "nn_epochs": 32, # Number of training epochs
