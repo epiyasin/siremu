@@ -5,13 +5,15 @@ import torch
 from torch.utils.data import Dataset
 import pandas as pd
 import numpy as np
+from settings import Settings
 
+settings = Settings("config.json")
 
 class MintDataset(Dataset):
     def __init__(self, input_file):
         self.frame = pd.read_csv(input_file)
-        self.nParams = 20
-        self.outDims = 61
+        self.nParams = settings.get_input_size()
+        self.outDims = settings.get_output_size()
 
     def __len__(self):
         return len(self.frame)

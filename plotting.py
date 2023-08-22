@@ -5,12 +5,15 @@ from utils import attach_identifier, distinct_rates
 from dataset import MintDataset
 import matplotlib.lines as mlines
 from matplotlib.widgets import CheckButtons
+from settings import Settings
+
+settings = Settings("config.json")
 
 def plot_comparison(predictions, actual, ABM_data, settings):
     predictions_np = attach_identifier(predictions)
     actual_np = attach_identifier(actual)
 
-    num_plots = settings["plotting"]["num_plots"]
+    num_plots = settings.get_num_plots()
 
     # Get distinct indices based on rates
     indices = distinct_rates(ABM_data, num_plots)
@@ -18,7 +21,7 @@ def plot_comparison(predictions, actual, ABM_data, settings):
     selected_infection_rates = [ABM_data[i]['infection_rate'] for i in indices]
     selected_recovery_rates = [ABM_data[i]['recovery_rate'] for i in indices]
 
-    fig, axes = plt.subplots(int(num_plots**0.5), int(num_plots**0.5), figsize=settings["plotting"]["figure_size_comparison"])
+    fig, axes = plt.subplots(int(num_plots**0.5), int(num_plots**0.5), figsize=settings.get_figure_size_comparison())
 
     handles = [
         plt.Line2D([0], [0], color='grey', label='Actual'),
@@ -55,7 +58,7 @@ def plot_comparison(predictions, actual, ABM_data, settings):
     plt.show()
 
 def plot_emulation(predicted_output, settings):
-    plt.figure(figsize=settings["plotting"]["figure_size_emulation"])
+    plt.figure(figsize=settings.get_figure_size_emulation())
     plt.plot(predicted_output[0].numpy(), label='Predicted Incidence')
     plt.title('Emulated Epidemic')
     plt.xlabel('Time Step')

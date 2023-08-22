@@ -1,13 +1,16 @@
 from dataset import MintDataset
 from torch.utils.data import DataLoader, random_split
 from sklearn.preprocessing import FunctionTransformer
+from settings import Settings
 
+settings = Settings("config.json")
 
 def prepare_nn_mint_data(settings):
-    file_path = settings["MINT"]["data"].get('data_path')
+    file_path = settings.get_mint_data_path()
     emulator_data = MintDataset(input_file=file_path)
-    test_pct = settings["neural_net"]["test_pct"]
-    val_pct = settings["neural_net"]["val_pct"]
+
+    test_pct = 0.2
+    val_pct = 0.2
 
     train_pct = 1 - test_pct - val_pct
     train_size = int(train_pct * len(emulator_data))
@@ -17,9 +20,9 @@ def prepare_nn_mint_data(settings):
     train_dataset, validation_dataset, test_dataset = random_split(emulator_data,
                                                                    [train_size, validation_size, test_size])
 
-    batch_size = settings["neural_net"]["nn_batch_size"]
-    num_workers = settings["neural_net"]["shuffle"]
-    shuffle = settings["neural_net"]["num_workers"]
+    batch_size = 32
+    num_workers = 16
+    shuffle = True
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
     validation_loader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
