@@ -13,14 +13,22 @@ def train_model(model, criterion, optimizer, train_loader, val_loader, settings)
 
     progress_bar = tqdm(range(epochs), desc='Training model', dynamic_ncols=True)
 
+    train_losses = []
+    val_losses = []
+
     for epoch in progress_bar:
+        total_train_loss = 0
+        total_train_batches = 0
         for inputs, targets in train_loader:
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-        # Step the learning rate scheduler
+            total_train_loss += loss.item()
+            total_train_batches += 1
+        avg_train_loss = total_train_loss / total_train_batches
+        train_losses.append(avg_train_loss)
         scheduler.step()
 
         # Validation
@@ -33,6 +41,9 @@ def train_model(model, criterion, optimizer, train_loader, val_loader, settings)
                     val_loss += criterion(outputs, targets).item()
                     val_batches += 1
                 avg_val_loss = val_loss / val_batches
-                
+                val_losses.append(avg_val_loss)
+
                 current_lr = optimizer.param_groups[0]['lr']
-                progress_bar.set_description(f'Training model (Loss: {loss.item():.2f}, Avg Val Loss: {avg_val_loss:.2f}, LR: {current_lr:.2e}), completed')
+                progress_bar.set_description(f'Training model (Loss: {avg_train_loss:.2f}, Avg Val Loss: {avg_val_loss:.2f}, LR: {current_lr:.2e}), completed')
+    
+    return train_losses, val_losses

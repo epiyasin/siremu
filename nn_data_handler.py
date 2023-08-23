@@ -2,12 +2,11 @@ import torch
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
-from config import settings
 
-def prepare_nn_data(X, Y):
+def prepare_nn_data(X, Y, settings):
     # Split data into train, validation, and test
-    X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["data"]["test_pct"], random_state=settings["execution"]["random_seed"])
-    X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=settings["data"]["val_pct"]/(1-settings["data"]["test_pct"]), random_state=settings["execution"]["random_seed"])
+    X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=settings["neural_net"]["test_pct"], random_state=settings["execution"]["random_seed"])
+    X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=settings["neural_net"]["val_pct"]/(1-settings["neural_net"]["test_pct"]), random_state=settings["execution"]["random_seed"])
 
     scaler = StandardScaler()
     
@@ -27,8 +26,8 @@ def prepare_nn_data(X, Y):
     test_data = TensorDataset(X_test, Y_test)
 
     # Create data loaders
-    train_loader = DataLoader(train_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
-    val_loader = DataLoader(val_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
-    test_loader = DataLoader(test_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["data"]["shuffle"], num_workers=settings["data"]["num_workers"])
+    train_loader = DataLoader(train_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["neural_net"]["shuffle"], num_workers=settings["neural_net"]["num_workers"])
+    val_loader = DataLoader(val_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["neural_net"]["shuffle"], num_workers=settings["neural_net"]["num_workers"])
+    test_loader = DataLoader(test_data, batch_size=settings["neural_net"]["nn_batch_size"], shuffle=settings["neural_net"]["shuffle"], num_workers=settings["neural_net"]["num_workers"])
 
     return train_loader, val_loader, test_loader, scaler
