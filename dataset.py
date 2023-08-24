@@ -1,6 +1,3 @@
-"""
-Abstraction over emulator input data for use in NN training.
-"""
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
