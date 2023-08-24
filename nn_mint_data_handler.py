@@ -6,7 +6,7 @@ from settings import Settings
 settings = Settings("config.json")
 
 def prepare_nn_mint_data(settings):
-    file_path = settings.get_mint_data_path()
+    file_path = settings.mint_data_path
     emulator_data = MintDataset(input_file=file_path)
 
     test_pct = 0.2
@@ -20,7 +20,7 @@ def prepare_nn_mint_data(settings):
     train_dataset, validation_dataset, test_dataset = random_split(emulator_data,
                                                                    [train_size, validation_size, test_size])
 
-    batch_size = 32
+    batch_size = 64
     num_workers = 16
     shuffle = True
 

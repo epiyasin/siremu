@@ -23,7 +23,7 @@
         "max_workers": 16,
         "random_seed": 42,
         "mode": "comparison",
-        "cached_model": true
+        "cached_model": false
     },
     "neural_net": {
         "nn_epochs": 32,

@@ -10,7 +10,7 @@ def generate_data(settings):
     print("Generating data...")
 
     # Data generation
-    np.random.seed(settings.get_random_seed())
+    np.random.seed(settings.random_seed)
     ABM_data = generate_ABM_data(settings)
 
     # Extract X, Y, and the rates from the ABM data
@@ -19,9 +19,9 @@ def generate_data(settings):
 
     for realisation in ABM_data:
         X.append([
-            np.random.uniform(*settings.get_abm_infection_rate_range()),
-            np.random.uniform(*settings.get_abm_recovery_rate_range()),
-            settings.get_abm_population_size()
+            np.random.uniform(*settings.abm_infection_rate_range),
+            np.random.uniform(*settings.abm_recovery_rate_range),
+            settings.abm_population_size
         ])
         Y.append(realisation['incidences'])
 
@@ -33,11 +33,11 @@ def generate_data(settings):
         'Y': Y,
         'ABM_data': ABM_data
     }
-    torch.save(data_to_save, os.path.join(settings.get_abm_data_dir(), 'ABM_data.pth'))
+    torch.save(data_to_save, os.path.join(settings.abm_data_dir, 'ABM_data.pth'))
     return X, Y, ABM_data
 
 def load_data(settings):
-    data_folder_path = settings.get_abm_data_dir()
+    data_folder_path = settings.abm_data_dir
     data_file_path = os.path.join(data_folder_path, 'ABM_data.pth')
     loaded_data = torch.load(data_file_path)
     X = loaded_data['X'].clone().detach()

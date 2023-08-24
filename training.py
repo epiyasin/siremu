@@ -7,9 +7,9 @@ settings = Settings("config.json")
 
 def train_model(model, criterion, optimizer, train_loader, val_loader, settings):
     # Retrieve values from settings
-    epochs = 32
-    step_size = 64
-    gamma = 0.8
+    epochs = settings.nn_epochs
+    step_size = settings.lr_scheduler['step_size']
+    gamma = settings.lr_scheduler['gamma']
 
     # Define the learning rate scheduler
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)

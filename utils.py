@@ -22,14 +22,14 @@ def check_model_exists(model_type, source):
 
 
 def select_model(settings):
-    if settings.get_model_type() == 'FFNN':
-        return FFNN(settings.get_input_size(), settings.get_hidden_size(), settings.get_output_size(),settings.get_dropout_prob())
-    elif settings.get_model_type() == 'GRU':
-        return GRU(settings.get_input_size(), settings.get_hidden_size(), settings.get_output_size(),settings.get_dropout_prob())
-    elif settings.get_model_type() == 'LSTM':
-        return LSTM(settings.get_input_size(), settings.get_hidden_size(), settings.get_output_size(),settings.get_dropout_prob())
-    elif settings.get_model_type() == 'BiRNN':
-        return BiRNN(settings.get_input_size(), settings.get_hidden_size(), settings.get_output_size(),settings.get_dropout_prob())
+    if settings.model_type == 'FFNN':
+        return FFNN(settings.input_size, settings.hidden_size, settings.output_size,settings.dropout_prob)
+    elif settings.model_type == 'GRU':
+        return GRU(settings.input_size, settings.hidden_size, settings.output_size,settings.dropout_prob)
+    elif settings.model_type == 'LSTM':
+        return LSTM(settings.input_size, settings.hidden_size, settings.output_size,settings.dropout_prob)
+    elif settings.model_type == 'BiRNN':
+        return BiRNN(settings.input_size, settings.hidden_size, settings.output_size,settings.dropout_prob)
 
 def attach_identifier(data):
     # Assumes the data is a list of numpy arrays

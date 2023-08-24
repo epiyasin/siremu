@@ -12,8 +12,8 @@ settings = Settings("config.json")
 class MintDataset(Dataset):
     def __init__(self, input_file):
         self.frame = pd.read_csv(input_file)
-        self.nParams = settings.get_input_size()
-        self.outDims = settings.get_output_size()
+        self.nParams = settings.input_size
+        self.outDims = settings.output_size
 
     def __len__(self):
         return len(self.frame)

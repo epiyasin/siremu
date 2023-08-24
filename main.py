@@ -1,4 +1,5 @@
 import torch
+from timeit import timeit
 from nn_mint_data_handler import prepare_nn_mint_data
 from testing import run_emulator
 from plotting import plot_comparison, plot_emulation, plot_mint_compare, plot_mint_time_series, plot_mint_avg_compare, plot_mint_avg_time_series
@@ -12,16 +13,16 @@ settings = Settings("config.json")
 
 if __name__ == "__main__":
     
-    data_folder_path = settings.get_abm_data_dir()
+    data_folder_path = settings.abm_data_dir
     # Check if the data folder exists and create it if not
     folder_exists = check_data_folder_exists(data_folder_path)
 
     # If the folder didn't exist, we know we need to generate data.
     # Otherwise, check if the data file exists within the folder
-    if settings.get_execution_source() == "ABM":
+    if settings.execution_source == "ABM":
         should_generate_data = not folder_exists or (folder_exists and not check_data_exists(data_folder_path))
 
-        if should_generate_data or settings.get_abm_generate():
+        if should_generate_data or settings.abm_generate:
             X, Y, ABM_data = generate_data(settings)
         else:
             X, Y, ABM_data = load_data(settings)
@@ -32,8 +33,8 @@ if __name__ == "__main__":
     # Handle model (loading, training, etc.)
     model = handle_model(train_loader, val_loader, settings)
 
-    if settings.get_execution_source() == "MINT":
-        if settings.get_mode() == "comparison":
+    if settings.execution_source == "MINT":
+        if settings.mode == "comparison":
 	        # Run the emulator
             predictions, actual = run_emulator(model, test_loader)
             plot_mint_compare(predictions, actual, settings)
@@ -42,16 +43,16 @@ if __name__ == "__main__":
             plot_mint_avg_time_series(predictions, actual, settings)
 
     else:   
-        if settings.get_mode() == "comparison":
+        if settings.mode == "comparison":
             # Run the emulator
             predictions, actual = run_emulator(model, test_loader)
             
             
             # Call the plotting function
             plot_comparison(predictions, actual, ABM_data, settings)        
-        elif settings.get_mode() == "emulation":
+        elif settings.mode == "emulation":
             # Emulate using the specific scenario
-            emulation_input = torch.tensor([settings.get_abm_scenario()], dtype=torch.float32)
+            emulation_input = torch.tensor([settings.abm_scenario], dtype=torch.float32)
             
             # Normalize input
             emulation_input_scaled = scaler.transform(emulation_input.numpy())
