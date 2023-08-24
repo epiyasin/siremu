@@ -1,4 +1,4 @@
-# WARNING THIS IS OUTDATED!
+# WARNING THIS README IS OUTDATED!
 # MINTemu: A Python Package for Malaria Emulation
 
 ## Installation
