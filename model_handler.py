@@ -21,14 +21,14 @@ def train_and_save_model(model, train_loader, val_loader, settings):
     
     # Define loss and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=settings["neural_net"]["lr_scheduler"]["learning_rate"])
+    optimizer = optim.Adam(model.parameters(), lr=settings.neural_net.lr_scheduler.learning_rate)
 
     # Train the model
     train_losses, val_losses = train_model(model, criterion, optimizer, train_loader, val_loader, settings)
     plot_losses(train_losses, val_losses)
     
     # Get the sub-folder based on the source
-    sub_folder = f"{settings['execution']['source']}_models"
+    sub_folder = f"{settings.execution.source}_models"
     model_folder = os.path.join("cached_models", sub_folder)
     
     # Check and create the sub-folder if not exists
@@ -36,7 +36,7 @@ def train_and_save_model(model, train_loader, val_loader, settings):
         os.makedirs(model_folder)
 
     # Save the model
-    torch.save(model.state_dict(), os.path.join(model_folder, f"{settings['execution']['source']}_{settings['neural_net']['model_type']}model.pth"))
+    torch.save(model.state_dict(), os.path.join(model_folder, f"{settings.execution.source}_{settings.neural_net.model_type}model.pth"))
     return model
 
 def handle_model(train_loader, val_loader, settings):
@@ -47,17 +47,17 @@ def handle_model(train_loader, val_loader, settings):
         os.makedirs("cached_models")
 
     # Get the sub-folder based on the source
-    sub_folder = f"{settings['execution']['source']}_models"
+    sub_folder = f"{settings.execution.source}_models"
     model_folder = os.path.join("cached_models", sub_folder)
     
     # Check and create the sub-folder if not exists
     if not os.path.exists(model_folder):
         os.makedirs(model_folder)
 
-    model_exists = check_model_exists(settings["neural_net"]["model_type"], settings["execution"]["source"])
+    model_exists = check_model_exists(settings.neural_net.model_type, settings.execution.source)
 
-    if model_exists and settings["execution"]["cached_model"]:
-        model = load_pretrained_model(model, settings["neural_net"]["model_type"], settings["execution"]["source"])
+    if model_exists and settings.execution.cached_model:
+        model = load_pretrained_model(model, settings.neural_net.model_type, settings.execution.source)
     else:
         if not model_exists:
             print("No saved models present, running training...")

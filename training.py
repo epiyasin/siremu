@@ -4,9 +4,9 @@ from tqdm import tqdm
 
 def train_model(model, criterion, optimizer, train_loader, val_loader, settings):
     # Retrieve values from settings
-    epochs = settings["neural_net"]["nn_epochs"]
-    step_size = settings["neural_net"]["lr_scheduler"]["step_size"]
-    gamma = settings["neural_net"]["lr_scheduler"]["gamma"]
+    epochs = settings.neural_net.nn_epochs
+    step_size = settings.neural_net.lr_scheduler.step_size
+    gamma = settings.neural_net.lr_scheduler.gamma
 
     # Define the learning rate scheduler
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
